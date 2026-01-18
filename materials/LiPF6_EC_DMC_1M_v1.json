@@ -1,0 +1,217 @@
+{
+  "metadata": {
+    "name": "LiPF6 in 1:1 EC:DMC (1M)",
+    "description": "Lithium hexafluorophosphate (LiPF6) in 1:1 ethylene carbonate:dimethyl carbonate solvent mixture",
+    "version": "1.0",
+    "reference": "Johannes Landesfeind and Hubert A. Gasteiger, Temperature and Concentration Dependence of the Ionic Transport Properties of Lithium-Ion Battery Electrolytes, Journal of The Electrochemical Society, 166 (14) A3079-A3097 (2019)",
+    "date_created": "2026-01-11"
+  },
+  "composition": {
+    "salt": "LiPF6",
+    "solvent_mixture": "EC:DMC",
+    "solvent_ratio": "1:1",
+    "nominal_concentration": {
+      "value": 1.0,
+      "unit": "M",
+      "notes": "Molar concentration (mol/L)"
+    }
+  },
+  "physical_properties": {
+    "density": {
+      "value": 1200,
+      "unit": "kg/m^3",
+      "notes": "Approximate density at room temperature"
+    },
+    "molecular_weight": {
+      "value": 152.0,
+      "unit": "g/mol",
+      "notes": "LiPF6 molecular weight"
+    }
+  },
+  "ionic_conductivity": {
+    "type": "function",
+    "function_type": "analytical",
+    "description": "Temperature and concentration dependent ionic conductivity",
+    "expression": "7.98e-1 * (1 + (T - 2.28e2)) * c * (1 - 1.22 * sqrt(max(c, eps)) + 5.09e-1 * (1 - 4e-3 * exp(1000/T)) * c) / (1 + c^4 * (3.79e-3 * exp(1000/T)))",
+    "variables": {
+      "c": {
+        "description": "Salt concentration",
+        "unit": "mol/L",
+        "valid_range": {
+          "min": 0.0,
+          "max": 3.0
+        }
+      },
+      "T": {
+        "description": "Temperature",
+        "unit": "K",
+        "valid_range": {
+          "min": 263.15,
+          "max": 323.15
+        }
+      }
+    },
+    "unit": "mS/cm",
+    "reference_value": {
+      "value": 10.5,
+      "unit": "mS/cm",
+      "conditions": {
+        "concentration": 1.0,
+        "concentration_unit": "M",
+        "temperature": 298.15,
+        "temperature_unit": "K"
+      }
+    }
+  },
+  "ionic_diffusivity": {
+    "type": "function",
+    "function_type": "analytical",
+    "description": "Salt diffusion coefficient as function of concentration and temperature",
+    "expression": "1.47e3 * exp(1.33 * c) * exp(-1.69e3 / T) * exp(-5.63e2 * c / T) * 1e-6",
+    "variables": {
+      "c": {
+        "description": "Salt concentration",
+        "unit": "mol/L",
+        "valid_range": {
+          "min": 0.0,
+          "max": 3.0
+        }
+      },
+      "T": {
+        "description": "Temperature",
+        "unit": "K",
+        "valid_range": {
+          "min": 263.15,
+          "max": 323.15
+        }
+      }
+    },
+    "unit": "cm^2/s",
+    "reference_value": {
+      "value": 2.6e-6,
+      "unit": "cm^2/s",
+      "conditions": {
+        "concentration": 1.0,
+        "concentration_unit": "M",
+        "temperature": 298.15,
+        "temperature_unit": "K"
+      }
+    }
+  },
+  "transference_number": {
+    "type": "function",
+    "function_type": "analytical",
+    "description": "Li+ transference number (cation transport number)",
+    "expression": "-7.91 + 2.45e-1 * c + 5.28e-2 * T + 6.98e-1 * c^2 - 1.08e-2 * c * T - 8.21e-5 * T^2 + 7.43e-4 * c^3 - 2.22e-3 * c^2 * T + 3.07e-5 * c * T^2",
+    "variables": {
+      "c": {
+        "description": "Salt concentration",
+        "unit": "mol/L",
+        "valid_range": {
+          "min": 0.0,
+          "max": 3.0
+        }
+      },
+      "T": {
+        "description": "Temperature",
+        "unit": "K",
+        "valid_range": {
+          "min": 263.15,
+          "max": 323.15
+        }
+      }
+    },
+    "unit": "dimensionless",
+    "reference_value": {
+      "value": 0.38,
+      "unit": "dimensionless",
+      "conditions": {
+        "concentration": 1.0,
+        "concentration_unit": "M",
+        "temperature": 298.15,
+        "temperature_unit": "K"
+      }
+    }
+  },
+  "thermodynamic_factor": {
+    "type": "function",
+    "function_type": "analytical",
+    "description": "Thermodynamic derivative factor (1 + d ln(f±)/d ln(c))",
+    "expression": "-5.58 + 7.17 * c + 3.8e-2 * T + 1.91 * c^2 - 6.65e-2 * c * T - 5.08e-5 * T^2 + 1.1e-1 * c^3 - 6.1e-3 * c^2 * T + 1.51e-4 * c * T^2",
+    "variables": {
+      "c": {
+        "description": "Salt concentration",
+        "unit": "mol/L",
+        "valid_range": {
+          "min": 0.0,
+          "max": 3.0
+        }
+      },
+      "T": {
+        "description": "Temperature",
+        "unit": "K",
+        "valid_range": {
+          "min": 263.15,
+          "max": 323.15
+        }
+      }
+    },
+    "unit": "dimensionless",
+    "reference_value": {
+      "value": 1.0,
+      "unit": "dimensionless",
+      "conditions": {
+        "concentration": 1.0,
+        "concentration_unit": "M",
+        "temperature": 298.15,
+        "temperature_unit": "K"
+      }
+    }
+  },
+  "operating_range": {
+    "concentration": {
+      "min": 0.1,
+      "max": 2.5,
+      "unit": "M",
+      "notes": "Recommended operating concentration range"
+    },
+    "temperature": {
+      "min": 263.15,
+      "max": 323.15,
+      "unit": "K",
+      "notes": "Valid temperature range for transport properties (-10°C to 50°C)"
+    }
+  },
+  "pybamm_parameters": {
+    "mapping": {
+      "Typical electrolyte concentration [mol.m-3]": {
+        "source": "composition.nominal_concentration.value",
+        "multiplier": 1000,
+        "notes": "Convert M (mol/L) to mol/m^3"
+      },
+      "Initial concentration in electrolyte [mol.m-3]": {
+        "source": "composition.nominal_concentration.value",
+        "multiplier": 1000,
+        "notes": "Convert M (mol/L) to mol/m^3"
+      },
+      "Cation transference number": {
+        "source": "transference_number.reference_value.value",
+        "notes": "Use reference value at 1M, 298.15K"
+      },
+      "Electrolyte conductivity [S.m-1]": {
+        "source": "ionic_conductivity.reference_value.value",
+        "multiplier": 0.1,
+        "notes": "Convert mS/cm to S/m (divide by 10)"
+      },
+      "Electrolyte diffusivity [m2.s-1]": {
+        "source": "diffusivity.reference_value.value",
+        "multiplier": 1e-4,
+        "notes": "Convert cm^2/s to m^2/s (multiply by 1e-4)"
+      }
+    },
+    "advanced_mapping": {
+      "notes": "For temperature/concentration dependent properties, custom functions may be needed in PyBaMM"
+    }
+  },
+  "notes": "This electrolyte is commonly used in commercial lithium-ion batteries. The transport properties are valid for the specified concentration and temperature ranges. For accurate simulations, use the functional forms rather than reference values when possible."
+}

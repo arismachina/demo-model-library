@@ -1,0 +1,7 @@
+{
+  "name": "LiPF6_in_1:1_EC:DEC_electrolyte_COMSOL",
+  "type": "electrolyte",
+  "chemistry": "LiPF6 in 1:1 EC:DEC",
+  "description": "LiPF6 in 1:1 EC:DEC (Liquid, Li-ion Battery)",
+  "source_file": "COMSOL_Materials.java"
+}

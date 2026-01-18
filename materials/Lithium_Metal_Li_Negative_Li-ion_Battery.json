@@ -1,0 +1,7 @@
+{
+  "name": "Lithium_Metal_anode_COMSOL",
+  "type": "anode",
+  "chemistry": "Lithium Metal",
+  "description": "Lithium Metal, Li (Negative, Li-ion Battery)",
+  "source_file": "COMSOL_Materials.java"
+}

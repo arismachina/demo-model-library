@@ -1,0 +1,137 @@
+{
+  "name": "NMC_622_cathode_COMSOL",
+  "type": "cathode",
+  "chemistry": "NMC 622",
+  "description": "NMC 622, LiNi0.6Mn0.2Co0.2O2 (Positive, Li-ion Battery)",
+  "source_file": "COMSOL_Materials.java",
+  "ocv": {
+    "type": "table",
+    "description": "Equilibrium potential as function of stoichiometry",
+    "data": {
+      "stoichiometry": {
+        "unit": "1",
+        "values": [
+          0.3,
+          0.344,
+          0.381,
+          0.4,
+          0.416,
+          0.454,
+          0.498,
+          0.534,
+          0.556,
+          0.581,
+          0.598,
+          0.624,
+          0.655,
+          0.685,
+          0.71,
+          0.74,
+          0.772,
+          0.799,
+          0.84,
+          0.871,
+          0.898,
+          0.917,
+          1.0
+        ]
+      },
+      "average": {
+        "unit": "V",
+        "values": [
+          4.201,
+          4.12,
+          4.059,
+          4.025,
+          3.998,
+          3.94,
+          3.875,
+          3.834,
+          3.811,
+          3.79,
+          3.78,
+          3.763,
+          3.753,
+          3.736,
+          3.726,
+          3.712,
+          3.695,
+          3.678,
+          3.651,
+          3.631,
+          3.607,
+          3.58,
+          3.0
+        ]
+      }
+    }
+  },
+  "intercalation_strain": {
+    "type": "table",
+    "description": "Volumetric strain vs stoichiometry",
+    "data": {
+      "stoichiometry": {
+        "unit": "1",
+        "values": [
+          0.879,
+          0.851,
+          0.823,
+          0.795,
+          0.764,
+          0.736,
+          0.699,
+          0.671,
+          0.641,
+          0.615,
+          0.583,
+          0.553,
+          0.525,
+          0.494,
+          0.466,
+          0.433,
+          0.405,
+          0.371,
+          0.345,
+          0.313,
+          0.282,
+          0.257,
+          0.224
+        ]
+      },
+      "volumetric_strain": {
+        "unit": "%",
+        "values": [
+          -0.134,
+          -0.2,
+          -0.287,
+          -0.397,
+          -0.419,
+          -0.528,
+          -0.616,
+          -0.703,
+          -0.725,
+          -0.813,
+          -0.878,
+          -0.966,
+          -1.075,
+          -1.163,
+          -1.25,
+          -1.36,
+          -1.491,
+          -1.688,
+          -1.973,
+          -2.367,
+          -2.936,
+          -3.57,
+          -4.161
+        ]
+      }
+    }
+  },
+  "properties": {
+    "max_concentration": {
+      "value": "Q_th/F_const*M/Vm",
+      "unit": "mol.m-3"
+    }
+  }
+}

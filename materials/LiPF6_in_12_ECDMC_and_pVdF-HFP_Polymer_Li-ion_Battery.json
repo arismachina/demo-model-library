@@ -1,0 +1,7 @@
+{
+  "name": "LiPF6_in_1:2_EC:DMC_and_p_electrolyte_COMSOL",
+  "type": "electrolyte",
+  "chemistry": "LiPF6 in 1:2 EC:DMC and p",
+  "description": "LiPF6 in 1:2 EC:DMC and p(VdF-HFP) (Polymer, Li-ion Battery)",
+  "source_file": "COMSOL_Materials.java"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "NMC_111_cathode_COMSOL",
+  "type": "cathode",
+  "chemistry": "NMC 111",
+  "description": "NMC 111, LiNi0.33Mn0.33Co0.33O2 (Positive, Li-ion Battery)",
+  "source_file": "COMSOL_Materials.java",
+  "properties": {
+    "max_concentration": {
+      "value": "49000[mol/m^3]",
+      "unit": "mol.m-3"
+    }
+  }
+}

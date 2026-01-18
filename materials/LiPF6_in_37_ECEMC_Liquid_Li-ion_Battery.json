@@ -1,0 +1,7 @@
+{
+  "name": "LiPF6_in_3:7_EC:EMC_electrolyte_COMSOL",
+  "type": "electrolyte",
+  "chemistry": "LiPF6 in 3:7 EC:EMC",
+  "description": "LiPF6 in 3:7 EC:EMC (Liquid, Li-ion Battery)",
+  "source_file": "COMSOL_Materials.java"
+}
