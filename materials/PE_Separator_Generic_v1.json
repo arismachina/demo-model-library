@@ -1,0 +1,158 @@
+{
+  "name": "PE_Separator_Generic_v1",
+  "supplier": "Generic",
+  "model": "v1",
+  "base_chemistry": "PE",
+  "type": "separator",
+  "chemistry": "Polyethylene",
+  "description": "Generic PE separator with ceramic coating - 9μm base PE film + 3μm ceramic coating for enhanced safety",
+  "advantages": [
+    "Excellent thermal shutdown",
+    "Enhanced safety with ceramic coating",
+    "Good ionic conductivity",
+    "Cost-effective solution",
+    "Improved thermal stability"
+  ],
+  "disadvantages": [
+    "Limited high-temperature operation",
+    "Slightly higher cost than uncoated PE",
+    "Thickness limitations"
+  ],
+  "applications": [
+    "Consumer Li-ion batteries",
+    "General purpose battery applications",
+    "Cost-sensitive designs",
+    "Standard energy storage systems"
+  ],
+  "physical_properties": {
+    "density": {
+      "value": 0.95,
+      "unit": "g.cm-3"
+    },
+    "thickness": {
+      "value": 12,
+      "unit": "um"
+    },
+    "porosity": {
+      "value": 0.4,
+      "unit": "1"
+    }
+  },
+  "thermal_properties": {
+    "operating_temp_range": {
+      "min": -40,
+      "max": 120,
+      "unit": "degC"
+    },
+    "specific_heat_capacity": {
+      "value": 1978.0,
+      "unit": "J.kg-1.K-1"
+    },
+    "thermal_conductivity": {
+      "value": 0.16,
+      "unit": "W.m-1.K-1"
+    },
+    "bruggeman_coefficient": {
+      "value": 1.5,
+      "unit": "1"
+    },
+    "melting_point": {
+      "value": 135,
+      "unit": "degC"
+    },
+    "shutdown_temp": {
+      "value": 130,
+      "unit": "degC"
+    }
+  },
+  "electrical_properties": {
+    "ionic_conductivity": {
+      "value": 0.7,
+      "unit": "mS.cm-1"
+    },
+    "electrical_resistivity": {
+      "value": 1e15,
+      "unit": "ohm.cm"
+    },
+    "breakdown_voltage": {
+      "value": 4500,
+      "unit": "V"
+    }
+  },
+  "mechanical_properties": {
+    "tensile_strength": {
+      "value": 100,
+      "unit": "MPa"
+    },
+    "puncture_strength": {
+      "value": 300,
+      "unit": "N"
+    },
+    "thermal_shrinkage": {
+      "temperature": 120,
+      "value": 6,
+      "unit": "%"
+    }
+  },
+  "composition": {
+    "base_film": {
+      "thickness": {
+        "value": 9,
+        "unit": "um"
+      },
+      "material": "PE"
+    },
+    "coating": {
+      "thickness": {
+        "value": 3,
+        "unit": "um"
+      },
+      "material": "Al2O3"
+    }
+  },
+  "pricing": {
+    "price_per_m2": {
+      "value": 0.95,
+      "unit": "USD"
+    },
+    "volume_discounts": {
+      "10000_m2": 0.10,
+      "50000_m2": 0.18,
+      "200000_m2": 0.25
+    }
+  },
+  "supply_chain": {
+    "availability": "Commercial",
+    "lead_time": {
+      "value": 4,
+      "unit": "weeks"
+    },
+    "minimum_order": {
+      "value": 5000,
+      "unit": "m2"
+    },
+    "production_capacity": {
+      "value": 800,
+      "unit": "million m2/year"
+    }
+  },
+  "quality_specifications": {
+    "standards": [
+      "ISO 9001",
+      "Battery grade specification",
+      "Separator performance standards"
+    ]
+  },
+  "data_source": {
+    "supplier_datasheet": "Generic PE Separator with Ceramic Coating Specification",
+    "technical_papers": [
+      "doi:10.1016/j.jpowsour.2019.227063 - PE separator thermal shutdown",
+      "doi:10.1149/2.0071913jes - Ceramic-coated separators for enhanced safety",
+      "doi:10.1016/j.jpowsour.2020.228076 - Ultra-thin separators in Li-ion batteries"
+    ],
+    "test_conditions": "Standard separator testing per IEC 62660-2",
+    "last_updated": "2024-12-19",
+    "validation_status": "Literature verified",
+    "notes": "Generic PE separator with ceramic coating for enhanced safety and performance"
+  }
+}

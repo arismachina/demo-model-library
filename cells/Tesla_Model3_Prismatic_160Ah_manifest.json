@@ -174,6 +174,10 @@
         "active_material_volume_fraction": {
           "value": 0.521,
           "unit": "1"
+        },
+        "bruggeman_coefficient": {
+          "value": 1.5,
+          "unit": "1"
         }
       },
       "foil": {
@@ -329,6 +333,10 @@
         "active_material_volume_fraction": {
           "value": 0.633,
           "unit": "1"
+        },
+        "bruggeman_coefficient": {
+          "value": 1.5,
+          "unit": "1"
         }
       },
       "foil": {
@@ -409,9 +417,9 @@
       }
     },
     "electrolyte": {
-      "name": "LiPF6(1M)-EC:DMC(50:50)_Generic_v1",
+      "name": "LiPF6_EC_DMC_1M_v1",
       "material": {
-        "type": "LiPF6(1M)-EC:DMC(50:50)_Generic_v1"
+        "type": "LiPF6_EC_DMC_1M_v1"
       },
       "mass": {
         "value": 322.198,

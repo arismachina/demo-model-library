@@ -62,9 +62,8 @@
   },
   "thermal_properties": {
     "operating_temp_range": {
-      "min": -30,
-      "max": 70,
-      "unit": "degC"
+      "min": {"value": -30, "unit": "degC"},
+      "max": {"value": 70, "unit": "degC"}
     },
     "specific_heat_capacity": {
       "value": 700,
@@ -104,7 +103,7 @@
       "value": 2.8,
       "unit": "V"
     },
-    "max_concentration": {
+    "max_lithium_concentration": {
       "value": 22820,
       "unit": "mol.m-3"
     },
@@ -588,6 +587,10 @@
       "value": 0.2,
       "unit": "F.m-2",
       "description": "Double layer capacitance"
+    },
+    "charge_transfer_coefficient": {
+      "value": 0.5,
+      "unit": "1"
     }
   },
   "pricing": {

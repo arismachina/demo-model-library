@@ -160,7 +160,11 @@
           "unit": "1"
         },
         "active_material_volume_fraction": {
-          "value": 1.002108871,
+          "value": 0.683,
+          "unit": "1"
+        },
+        "bruggeman_coefficient": {
+          "value": 1.5,
           "unit": "1"
         }
       },
@@ -316,6 +320,10 @@
         },
         "active_material_volume_fraction": {
           "value": 0.617,
+          "unit": "1"
+        },
+        "bruggeman_coefficient": {
+          "value": 1.5,
           "unit": "1"
         }
       },
