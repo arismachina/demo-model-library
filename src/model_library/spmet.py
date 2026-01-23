@@ -5,64 +5,12 @@ Unified PyBaMM model that takes experiment strings via simulation config
 and returns raw time series data for post-processing.
 """
 
-import numpy as np
 import pybamm
-import json
-from pathlib import Path
-
-
-def _create_exchange_current_density_function(m_ref: float, E_r: float = 17800):
-    """
-    Create an exchange-current density function for Butler-Volmer kinetics.
-
-    Args:
-        m_ref: Reference exchange-current density coefficient [(A/m2)(m3/mol)^1.5]
-        E_r: Activation energy [J/mol] (default: 17800)
-
-    Returns:
-        Function that computes exchange-current density as f(c_e, c_s_surf, c_s_max, T)
-    """
-
-    def exchange_current_density(c_e, c_s_surf, c_s_max, T):
-        """
-        Exchange-current density for Butler-Volmer reactions.
-
-        Parameters:
-            c_e: Electrolyte concentration [mol.m-3]
-            c_s_surf: Particle surface concentration [mol.m-3]
-            c_s_max: Maximum particle concentration [mol.m-3]
-            T: Temperature [K]
-
-        Returns:
-            Exchange-current density [A.m-2]
-        """
-        arrhenius = np.exp(E_r / pybamm.constants.R * (1 / 298.15 - 1 / T))
-        return (
-            m_ref * arrhenius * c_e**0.5 * c_s_surf**0.5 * (c_s_max - c_s_surf) ** 0.5
-        )
-
-    return exchange_current_density
-
-
-class dict2obj:
-    """Simple class for dot notation access to nested dicts."""
-
-    def __init__(self, d):
-        for key, value in d.items():
-            if isinstance(value, dict):
-                setattr(self, key, dict2obj(value))
-            else:
-                setattr(self, key, value)
-
-    def get(self, key, default=None):
-        val = getattr(self, key, default)
-        if val is default and not isinstance(default, dict2obj):
-            return default
-        return val
-
+import numpy as np
+import re
 
 def run_spmet(
-    cell_design_manifest: dict,
+    cell_design: dict,
     simulation_config: dict | None = None,
 ) -> list[dict]:
     """
@@ -75,7 +23,7 @@ def run_spmet(
     4. Returning raw time series data
 
     Args:
-        cell_design_manifest: Cell design parameters dictionary
+        cell_design: Cell design parameters dictionary
 
         simulation_config: Simulation configuration dictionary containing:
             - temperature_K: Temperature [K] (default: 298.15)
@@ -86,6 +34,11 @@ def run_spmet(
             - lower_voltage_cutoff: Lower voltage cutoff [V] (default: 2.5)
             - upper_voltage_cutoff: Upper voltage cutoff [V] (default: 3.65)
             - contact_resistance: Contact resistance [Ohm] (default: 1e-5)
+            - drive_cycle: Dict with drive cycle data (optional, alternative to experiments):
+                - time_s: Array of time points [s]
+                - power_W: Array of power values [W] (positive = discharge), OR
+                - c_rate: Array of C-rate values (positive = discharge)
+                - label: Label for the drive cycle (optional)
 
     Returns:
         List of dictionaries, one per experiment, each containing:
@@ -104,15 +57,9 @@ def run_spmet(
     Example:
         >>> config = {
         ...     "initial_soc": 1.0,
-        ...     "experiments": [
-        ...         "Discharge at 0.5C for 2 hours or until 2.5 V",
-        ...         "Discharge at 1C for 1 hour or until 2.5 V",
-        ...     ],
-        ...     "experiment_labels": ["0.5C", "1C"],
+        ...     ...
         ... }
-        >>> results = run_spmet(cell_design_manifest, config)
-        >>> for r in results:
-        ...     print(f"{r['experiment_label']}: {len(r['time_s'])} points")
+        >>> results = run_spmet(cell_design, config)
     """
     if simulation_config is None:
         raise ValueError("simulation_config must be provided")
@@ -138,270 +85,93 @@ def run_spmet(
         }
 
     # Build PyBaMM parameters from manifest
-    default_params = _build_parameters(cell_design_manifest, simulation_config)
-
-    # Get cell design parameters
-    cell_design = dict2obj(cell_design_manifest["cell_design"])
-    kpis = dict2obj(cell_design_manifest["kpis"])
-
-    # Set PyBaMM model options
-    model_options = {
-        "calculate discharge energy": "true",
-        "cell geometry": "arbitrary",
-        "thermal": "lumped",
-        "contact resistance": "true",
-    }
-
-    # Capacity calibration
-    target_capacity_Ah = kpis.nominal_capacity.value
-    default_params = _calibrate_capacity(
-        default_params, model_options, cell_design, target_capacity_Ah
-    )
-
-    # Get experiments from config
-    experiments = simulation_config.get("experiments")
-    experiment_labels = simulation_config.get("experiment_labels")
-
-    if not experiments:
-        raise ValueError("No experiments provided in simulation_config['experiments']")
-
-    # Pad labels if needed
-    while len(experiment_labels) < len(experiments):
-        experiment_labels.append(f"exp_{len(experiment_labels)}")
-
-    print("\n" + "=" * 80)
-    print("RUNNING EXPERIMENTS")
-    print("=" * 80)
-
-    initial_soc = simulation_config.get("initial_soc")
-    period = simulation_config.get("period")
-
-    all_results = []
-
-    for exp_str, label in zip(experiments, experiment_labels):
-        print(f"\nRunning: {label}")
-        print(f"  Experiment: {exp_str[:60]}{'...' if len(exp_str) > 60 else ''}")
-
-        result = _run_experiment(
-            default_params,
-            model_options,
-            exp_str,
-            initial_soc,
-            period,
-            label,
-            simulation_config,
-        )
-        all_results.append(result)
-
-    print("\n" + "=" * 80)
-    print(
-        f"Completed {len([r for r in all_results if r['success']])}/{len(all_results)} experiments"
-    )
-    print("=" * 80)
-
-    return all_results
-
-
-# Helper functions
-def _build_parameters(
-    cell_design_manifest: dict, simulation_config: dict
-) -> pybamm.ParameterValues:
-    """Build PyBaMM parameters from cell design manifest."""
     default_params = pybamm.ParameterValues({})
-
-    cell_design = dict2obj(cell_design_manifest["cell_design"])
-    kpis = dict2obj(cell_design_manifest["kpis"])
-
-    optimized = (
-        cell_design_manifest.get("simulation_models")
-        .get("SPMeT")
-        .get("optimized_parameters")
-    )
 
     print("\nBuilding model parameters from manifest...")
 
-    # Load OCP data from material files
-    materials_dir = Path(__file__).parent.parent.parent / "materials"
-
-    pos_electrode = cell_design.positive_electrode
-    neg_electrode = cell_design.negative_electrode
-
-    pos_material_name = pos_electrode.coating.formulation.primary_active_material.name
-    neg_material_name = neg_electrode.coating.formulation.primary_active_material.name
-
-    pos_material_path = materials_dir / f"{pos_material_name}.json"
-    neg_material_path = materials_dir / f"{neg_material_name}.json"
-
-    # Load material data
-    with open(pos_material_path, "r") as f:
-        pos_material = dict2obj(json.load(f))
-    with open(neg_material_path, "r") as f:
-        neg_material = dict2obj(json.load(f))
-
-    # Positive electrode OCP
-    pos_ocp, sto_p_0, sto_p_100 = _load_ocp_data(pos_material_path, "positive")
-
-    # Negative electrode OCP
-    neg_ocp, sto_n_0, sto_n_100 = _load_ocp_data(neg_material_path, "negative")
-
-    # Debug: print stoichiometry values
-    print(f"  Positive electrode: sto_0={sto_p_0:.4f}, sto_100={sto_p_100:.4f}")
-    print(f"  Negative electrode: sto_0={sto_n_0:.4f}, sto_100={sto_n_100:.4f}")
-
-    # Calculate expected OCV at both SOC extremes
-    pos_ocp_data = pos_ocp[1]  # (stoich, volts) tuple
-    neg_ocp_data = neg_ocp[1]
-    pos_v_0 = np.interp(sto_p_0, pos_ocp_data[0], pos_ocp_data[1])
-    neg_v_0 = np.interp(sto_n_0, neg_ocp_data[0], neg_ocp_data[1])
-    pos_v_100 = np.interp(sto_p_100, pos_ocp_data[0], pos_ocp_data[1])
-    neg_v_100 = np.interp(sto_n_100, neg_ocp_data[0], neg_ocp_data[1])
-    print(
-        f"  OCV at 0% cell SOC: {pos_v_0:.3f} - {neg_v_0:.3f} = {pos_v_0 - neg_v_0:.3f} V"
-    )
-    print(
-        f"  OCV at 100% cell SOC: {pos_v_100:.3f} - {neg_v_100:.3f} = {pos_v_100 - neg_v_100:.3f} V"
-    )
+    if (
+        cell_design["positive_electrode"]["coating"]["formulation"][
+            "primary_active_material"
+        ]["name"]
+        == "LFP"
+    ):
+        default_params = pybamm.ParameterValues("Prada2013")
+    else:
+        default_params = pybamm.ParameterValues("ORegan2022")
 
     # Cell parameters
     cell_params = {
-        "Open-circuit voltage at 0% SOC [V]": optimized.get(
-            "Open-circuit voltage at 0% SOC [V]",
-            cell_design.lower_voltage_cutoff.value,
-        ),
-        "Open-circuit voltage at 100% SOC [V]": optimized.get(
-            "Open-circuit voltage at 100% SOC [V]",
-            cell_design.upper_voltage_cutoff.value,
-        ),
-        "Nominal cell capacity [A.h]": kpis.nominal_capacity.value,
-        "Number of cells connected in series to make a battery": 1.0,
+        "Nominal cell capacity [A.h]": cell_design["nominal_capacity"]["value"],
     }
 
     # Positive electrode parameters
     number_of_coated_sides = 2
-    pos_electrode = cell_design.positive_electrode
+    pos_electrode = cell_design["positive_electrode"]
 
     positive_electrode_params = {
         "Number of electrodes connected in parallel to make a cell": (
-            pos_electrode.count.value
-            * cell_design.jelly_roll.count.value
+            pos_electrode["count"]["value"]
+            * cell_design["jelly_roll"]["count"]["value"]
             * number_of_coated_sides
         ),
-        "Electrode height [m]": pos_electrode.height.value / 1000,
-        "Electrode width [m]": pos_electrode.width.value / 1000,
-        "Electrode length [m]": pos_electrode.width.value / 1000,
-        "Positive electrode thickness [m]": pos_electrode.coating.thickness.value / 1e6,
-        "Positive electrode porosity": pos_electrode.coating.porosity.value,
-        "Positive electrode active material volume fraction": pos_electrode.coating.active_material_volume_fraction.value,
-        "Positive electrode density [kg.m-3]": pos_electrode.coating.density.value
-        * 1000,
-        "Positive electrode specific heat capacity [J.kg-1.K-1]": pos_material.thermal_properties.specific_heat_capacity.value,
-        "Positive electrode conductivity [S.m-1]": pos_material.physical_properties.conductivity.value,
-        "Positive particle diffusivity [m2.s-1]": pos_material.electrochemical_properties.diffusion_coefficient.value,
-        "Positive electrode Bruggeman coefficient (electrode)": pos_electrode.coating.bruggeman_coefficient.value,
-        "Positive electrode Bruggeman coefficient (electrolyte)": pos_electrode.coating.bruggeman_coefficient.value,
-        "Positive electrode OCP [V]": pos_ocp,
-        "Positive electrode OCP entropic change [V.K-1]": pos_material.thermal_properties.ocp_entropic_change.value,
-        "Positive electrode charge transfer coefficient": pos_material.electrochemical_properties.charge_transfer_coefficient.value,
-        "Positive electrode double-layer capacity [F.m-2]": pos_material.electrochemical_properties.double_layer_capacitance.value,
-        "Positive electrode exchange-current density [A.m-2]": _create_exchange_current_density_function(
-            pos_material.electrochemical_properties.reaction_rate.value
-        ),
-        "Positive particle radius [m]": pos_material.physical_properties.particle_size.d50.value
+        "Electrode height [m]": pos_electrode["height"]["value"] / 1000,
+        "Electrode width [m]": pos_electrode["width"]["value"] / 1000,
+        "Electrode length [m]": pos_electrode["width"]["value"] / 1000,
+        "Positive electrode thickness [m]": pos_electrode["coating"]["thickness"][
+            "value"
+        ]
         / 1e6,
-        "Maximum stoichiometry in positive electrode": sto_p_0,
-        "Minimum stoichiometry in positive electrode": sto_p_100,
-        "Maximum concentration in positive electrode [mol.m-3]": pos_material.electrochemical_properties.max_lithium_concentration.value,
-        # Initial at 50% SOC (midpoint between sto_p_0 and sto_p_100)
-        "Initial concentration in positive electrode [mol.m-3]": (sto_p_0 + sto_p_100)
-        / 2
-        * pos_material.electrochemical_properties.max_lithium_concentration.value,
+        "Positive electrode porosity": pos_electrode["coating"]["porosity"]["value"],
+        "Positive electrode active material volume fraction": pos_electrode["coating"][
+            "active_material_volume_fraction"
+        ]["value"],
+        "Positive electrode density [kg.m-3]": pos_electrode["coating"]["density"][
+            "value"
+        ]
+        * 1000,
     }
 
     positive_cc_params = {
-        "Positive current collector thickness [m]": pos_electrode.foil.thickness.value
+        "Positive current collector thickness [m]": pos_electrode["foil"]["thickness"][
+            "value"
+        ]
         / 1e6,
-        "Positive current collector conductivity [S.m-1]": pos_electrode.foil.material.electrical_conductivity.value,
-        "Positive current collector density [kg.m-3]": pos_electrode.foil.material.density.value
-        * 1000,
-        "Positive current collector thermal conductivity [W.m-1.K-1]": pos_electrode.foil.material.thermal_conductivity.value,
-        "Positive current collector specific heat capacity [J.kg-1.K-1]": pos_electrode.foil.material.specific_heat.value,
     }
 
     # Negative electrode parameters
-    neg_electrode = cell_design.negative_electrode
+    neg_electrode = cell_design["negative_electrode"]
 
     negative_electrode_params = {
-        "Negative electrode porosity": neg_electrode.coating.porosity.value,
-        "Negative electrode active material volume fraction": neg_electrode.coating.active_material_volume_fraction.value,
-        "Negative electrode density [kg.m-3]": neg_electrode.coating.density.value
-        * 1000,
-        "Negative electrode specific heat capacity [J.kg-1.K-1]": neg_material.thermal_properties.specific_heat_capacity.value,
-        "Negative electrode conductivity [S.m-1]": neg_material.physical_properties.conductivity.value,
-        "Negative particle diffusivity [m2.s-1]": neg_material.electrochemical_properties.diffusion_coefficient.value,
-        "Negative electrode Bruggeman coefficient (electrode)": neg_electrode.coating.bruggeman_coefficient.value,
-        "Negative electrode Bruggeman coefficient (electrolyte)": neg_electrode.coating.bruggeman_coefficient.value,
-        "Negative electrode OCP [V]": neg_ocp,
-        "Negative electrode OCP entropic change [V.K-1]": neg_material.thermal_properties.ocp_entropic_change.value,
-        "Negative electrode charge transfer coefficient": neg_material.electrochemical_properties.charge_transfer_coefficient.value,
-        "Negative electrode double-layer capacity [F.m-2]": neg_material.electrochemical_properties.double_layer_capacitance.value,
-        "Negative electrode exchange-current density [A.m-2]": _create_exchange_current_density_function(
-            neg_material.electrochemical_properties.reaction_rate.value
-        ),
-        "Negative electrode thickness [m]": neg_electrode.coating.thickness.value / 1e6,
-        "Negative particle radius [m]": neg_material.physical_properties.particle_size.d50.value
+        "Negative electrode thickness [m]": neg_electrode["coating"]["thickness"][
+            "value"
+        ]
         / 1e6,
-        "Maximum stoichiometry in negative electrode": sto_n_100,
-        "Minimum stoichiometry in negative electrode": sto_n_0,
-        "Maximum concentration in negative electrode [mol.m-3]": neg_material.electrochemical_properties.max_lithium_concentration.value,
-        # Initial at 50% SOC (midpoint between sto_n_0 and sto_n_100)
-        "Initial concentration in negative electrode [mol.m-3]": (sto_n_0 + sto_n_100)
-        / 2
-        * neg_material.electrochemical_properties.max_lithium_concentration.value,
+        "Negative electrode porosity": neg_electrode["coating"]["porosity"]["value"],
+        "Negative electrode active material volume fraction": neg_electrode["coating"][
+            "active_material_volume_fraction"
+        ]["value"],
+        "Negative electrode density [kg.m-3]": neg_electrode["coating"]["density"][
+            "value"
+        ]
+        * 1000,
     }
 
     negative_cc_params = {
-        "Negative current collector thickness [m]": neg_electrode.foil.thickness.value
+        "Negative current collector thickness [m]": neg_electrode["foil"]["thickness"][
+            "value"
+        ]
         / 1e6,
-        "Negative current collector conductivity [S.m-1]": neg_electrode.foil.material.electrical_conductivity.value,
-        "Negative current collector density [kg.m-3]": neg_electrode.foil.material.density.value
-        * 1000,
-        "Negative current collector thermal conductivity [W.m-1.K-1]": neg_electrode.foil.material.thermal_conductivity.value,
-        "Negative current collector specific heat capacity [J.kg-1.K-1]": neg_electrode.foil.material.specific_heat.value,
     }
 
     # Separator parameters
-    separator_material_name = cell_design.separator.name
-    separator_material_path = materials_dir / f"{separator_material_name}.json"
-    with open(separator_material_path, "r") as f:
-        separator_material = dict2obj(json.load(f))
-
+    separator = cell_design["separator"]
     separator_params = {
-        "Separator thickness [m]": cell_design.separator.thickness.value / 1e6,
-        "Separator porosity": cell_design.separator.porosity.value,
-        "Separator density [kg.m-3]": cell_design.separator.material.density.value
+        "Separator thickness [m]": separator["thickness"]["value"] / 1e6,
+        "Separator porosity": separator["porosity"]["value"],
+        "Separator density [kg.m-3]": separator["material"]["physical_properties"][
+            "density"
+        ]["value"]
         * 1000,
-        "Separator specific heat capacity [J.kg-1.K-1]": separator_material.thermal_properties.specific_heat_capacity.value,
-        "Separator Bruggeman coefficient (electrolyte)": separator_material.thermal_properties.bruggeman_coefficient.value,
-        "Separator thermal conductivity [W.m-1.K-1]": separator_material.thermal_properties.thermal_conductivity.value,
-    }
-
-    # Electrolyte parameters
-    electrolyte_name = cell_design.electrolyte.name
-    electrolyte_path = (
-        Path(__file__).parent.parent.parent / "materials" / f"{electrolyte_name}.json"
-    )
-    with open(electrolyte_path, "r") as f:
-        electrolyte = dict2obj(json.load(f))
-
-    electrolyte_params = {
-        "Cation transference number": electrolyte.transference_number.reference_value.value,
-        "Electrolyte conductivity [S.m-1]": electrolyte.ionic_conductivity.reference_value.value
-        * 0.1,
-        "Electrolyte diffusivity [m2.s-1]": electrolyte.ionic_diffusivity.reference_value.value
-        * 1e-4,
-        "Initial concentration in electrolyte [mol.m-3]": cell_design.electrolyte.concentration.value
-        * 1000,
-        "Thermodynamic factor": electrolyte.thermodynamic_factor.reference_value.value,
     }
 
     # Thermal parameters
@@ -411,7 +181,7 @@ def _build_parameters(
             "total_heat_transfer_coefficient"
         ],
         "Cell cooling surface area [m2]": simulation_config["cooling_surface_area"],
-        "Cell volume [m3]": kpis.cell_volume.value / 1000.0,
+        "Cell volume [m3]": cell_design["cell_volume"]["value"] / 1000.0,
     }
 
     # Operating conditions
@@ -421,7 +191,6 @@ def _build_parameters(
         "Contact resistance [Ohm]": simulation_config["contact_resistance"],
         "Upper voltage cut-off [V]": simulation_config["upper_voltage_cutoff"],
         "Lower voltage cut-off [V]": simulation_config["lower_voltage_cutoff"],
-        "Current function [A]": kpis.nominal_capacity.value,  # 1C current
     }
 
     # Combine all parameters
@@ -432,109 +201,36 @@ def _build_parameters(
         **negative_electrode_params,
         **negative_cc_params,
         **separator_params,
-        **electrolyte_params,
         **thermal_params,
         **operating_conditions,
     }
 
     default_params.update(pybamm_params, check_already_exists=False)
-    print("  Parameters loaded")
 
-    return default_params
+    # Set PyBaMM model options
+    model_options = {
+        "calculate discharge energy": "true",
+        "cell geometry": "arbitrary",
+        "thermal": "lumped",
+        "contact resistance": "true",
+    }
 
-
-def _load_ocp_data(file_path: Path, electrode_type: str) -> tuple:
-    """Load OCP data from JSON file."""
-    if not file_path.exists():
-        raise FileNotFoundError(f"Material file not found: {file_path}")
-
-    with open(file_path, "r") as f:
-        data = json.load(f)
-
-    ocv_data = data["electrochemical_properties"]["ocv"]["data"]
-
-    if isinstance(ocv_data["stoichiometry"], dict):
-        stoich_raw = ocv_data["stoichiometry"]["value"]
-        volts_raw = ocv_data["average"]["value"]
-    else:
-        stoich_raw = ocv_data["stoichiometry"]
-        volts_raw = ocv_data["average"]
-
-    stoich = np.array(stoich_raw, dtype=np.float64).flatten()
-    volts = np.array(volts_raw, dtype=np.float64).flatten()
-
-    # Sort and deduplicate
-    sort_idx = np.argsort(stoich)
-    stoich = stoich[sort_idx]
-    volts = volts[sort_idx]
-    _, unique_idx = np.unique(stoich, return_index=True)
-    stoich = stoich[unique_idx]
-    volts = volts[unique_idx]
-
-    ocp_name = (
-        "Positive_OCP_data" if electrode_type == "positive" else "Negative_OCP_data"
-    )
-    ocp = (ocp_name, (stoich, volts))
-
-    # Return (ocp, sto_at_0%_cell_SOC, sto_at_100%_cell_SOC)
-    # At 100% cell SOC: cathode is delithiated (low sto), anode is lithiated (high sto)
-    # At 0% cell SOC: cathode is lithiated (high sto), anode is delithiated (low sto)
-    if electrode_type == "positive":
-        # Cathode: low stoichiometry at 100% cell SOC, high at 0% cell SOC
-        return ocp, stoich.max(), stoich.min()
-    else:
-        # Anode: high stoichiometry at 100% cell SOC, low at 0% cell SOC
-        return ocp, stoich.min(), stoich.max()
-
-
-def _calibrate_capacity(
-    default_params: pybamm.ParameterValues,
-    model_options: dict,
-    cell_design,
-    target_capacity_Ah: float,
-) -> pybamm.ParameterValues:
-    """Calibrate electrode width to match target capacity."""
+    # Capacity calibration
+    target_capacity_Ah = cell_design["nominal_capacity"]["value"]
+    # Calibrate electrode width to match target capacity.
     print("\n" + "=" * 80)
     print("CAPACITY CALIBRATION")
     print("=" * 80)
     print(f"Target capacity: {target_capacity_Ah:.2f} Ah")
     I_0_33C = target_capacity_Ah / 3
     I_0_1C = target_capacity_Ah / 10
-    print(
-        f"Charge current: {I_0_33C:.2f} A (C/3), Discharge current: {I_0_1C:.2f} A (C/10)"
-    )
-    print(
-        f"Upper voltage: {cell_design.upper_voltage_cutoff.value} V, Lower voltage: {cell_design.lower_voltage_cutoff.value} V"
-    )
-    print(
-        f"Nominal capacity in params: {default_params['Nominal cell capacity [A.h]']:.2f} Ah"
-    )
-    print(
-        f"Pos sto limits: min={default_params['Minimum stoichiometry in positive electrode']:.4f}, max={default_params['Maximum stoichiometry in positive electrode']:.4f}"
-    )
-    print(
-        f"Neg sto limits: min={default_params['Minimum stoichiometry in negative electrode']:.4f}, max={default_params['Maximum stoichiometry in negative electrode']:.4f}"
-    )
-
-    # Check what PyBaMM calculates as the cell capacity
-    model_check = pybamm.lithium_ion.SPMe(options=model_options)
-    sim_check = pybamm.Simulation(model_check, parameter_values=default_params)
-    sim_check.build()
-    Q_calc = sim_check.parameter_values.evaluate(model_check.param.Q)
-    print(f"PyBaMM calculated cell capacity: {Q_calc:.2f} Ah")
 
     # Use C-rate syntax which PyBaMM handles better
-    charge_step = f"Charge at 0.1C until {cell_design.upper_voltage_cutoff.value} V"
-    hold_step = (
-        f"Hold at {cell_design.upper_voltage_cutoff.value} V for 2 hours or until C/50"
+    charge_step = (
+        f"Charge at 0.1C until {cell_design['upper_voltage_cutoff']['value']} V"
     )
-    discharge_step = f"Discharge at 0.1C for 15 hours or until {cell_design.lower_voltage_cutoff.value} V"
-
-    print(f"Experiment steps:")
-    print(f"  1. Rest, {charge_step}, {hold_step}")
-    print(f"  2. Rest")
-    print(f"  3. {discharge_step}")
-    print(f"  4. Rest")
+    hold_step = f"Hold at {cell_design['upper_voltage_cutoff']['value']} V for 2 hours or until C/50"
+    discharge_step = f"Discharge at 0.1C for 15 hours or until {cell_design['lower_voltage_cutoff']['value']} V"
 
     capacity_match_experiment = pybamm.Experiment(
         [
@@ -625,31 +321,38 @@ def _calibrate_capacity(
     else:
         print(f"Warning: Did not converge after {MAX_ITERATIONS} iterations")
 
-    print(f"Final electrode width: {default_params['Electrode width [m]']*1000:.2f} mm")
-    print(f"Final capacity: {default_params['Nominal cell capacity [A.h]']:.2f} Ah")
-    print("Final OCV limits:")
-    print(
-        f"  OCV at 100% SOC: {default_params['Open-circuit voltage at 100% SOC [V]']:.2f} V"
-    )
-    print(
-        f"  OCV at 0% SOC: {default_params['Open-circuit voltage at 0% SOC [V]']:.2f} V"
-    )
+    # Check for drive cycle mode
+    drive_cycle = simulation_config.get("drive_cycle")
 
-    return default_params
+    if drive_cycle is not None:
+        # Drive cycle mode: use time-power data directly
+        return _run_drive_cycle(
+            drive_cycle=drive_cycle,
+            simulation_config=simulation_config,
+            default_params=default_params,
+            model_options=model_options,
+        )
 
+    # Get experiments from config
+    experiments = simulation_config.get("experiments")
+    experiment_labels = simulation_config.get("experiment_labels")
 
-def _run_experiment(
-    default_params: pybamm.ParameterValues,
-    model_options: dict,
-    experiment_str: str,
-    initial_soc: float,
-    period: str,
-    experiment_label: str,
-    simulation_config: dict,
-) -> dict:
-    """Run a single experiment and return time series data."""
+    if not experiments:
+        raise ValueError("No experiments provided in simulation_config['experiments'] or 'drive_cycle'")
+
+    # Pad labels if needed
+    while len(experiment_labels) < len(experiments):
+        experiment_labels.append(f"exp_{len(experiment_labels)}")
+
+    print("\n" + "=" * 80)
+    print("RUNNING EXPERIMENTS")
+    print("=" * 80)
+
+    initial_soc = simulation_config.get("initial_soc")
+    period = simulation_config.get("period")
+
+    # Define solver and points outside loop
     var_pts = {"x_n": 10, "x_s": 10, "x_p": 10, "r_n": 10, "r_p": 10}
-
     solver = pybamm.IDAKLUSolver(
         atol=1e-4,
         rtol=1e-4,
@@ -661,60 +364,313 @@ def _run_experiment(
             "Discharge energy [W.h]",
             "Volume-averaged cell temperature [K]",
             "Power [W]",
+            "Anode potential [V]",
         ],
     )
 
-    # Build PyBaMM experiment from string
+    all_results = []
+    for exp_str, label in zip(experiments, experiment_labels):
+        print(f"\nRunning: {label}")
+        print(f"  Experiment: {exp_str[:60]}{'...' if len(exp_str) > 60 else ''}")
+
+        # Get thresholds from config
+        anode_threshold = simulation_config.get("anode_potential_threshold_V", 0.02)
+        temp_threshold = simulation_config.get("jelly_roll_temperature_threshold_K")
+        upper_voltage = simulation_config["upper_voltage_cutoff"]
+        lower_voltage = simulation_config["lower_voltage_cutoff"]
+        max_time_s = simulation_config.get("max_charge_time_s", 3600)
+
+        # Define cutoff functions
+        def anode_potential_cutoff(variables):
+            return variables["Anode potential [V]"] - anode_threshold
+
+        def temperature_cutoff(variables):
+            return temp_threshold - variables["Volume-averaged cell temperature [K]"]
+
+        # Build termination conditions list
+        termination_conditions = []
+
+        if "anode_potential_threshold_V" in simulation_config:
+            termination_conditions.append(
+                pybamm.step.CustomTermination(
+                    "Anode potential cut-off [V]", anode_potential_cutoff
+                )
+            )
+
+        if temp_threshold is not None:
+            termination_conditions.append(
+                pybamm.step.CustomTermination(
+                    "Jelly roll temperature cut-off [K]", temperature_cutoff
+                )
+            )
+
+        # Check if this is a fast charge with anode potential riding
+        if simulation_config.get("ride_anode_potential"):
+            # Fast charge mode: CC -> Anode riding -> CV
+            cv_termination = simulation_config.get("cv_termination_c_rate", 0.05)
+
+            # Build terminations for anode riding phase
+            riding_terminations = [f"{upper_voltage}V"]
+            if temp_threshold is not None:
+                riding_terminations.append(
+                    pybamm.step.CustomTermination(
+                        "Jelly roll temperature cut-off [K]", temperature_cutoff
+                    )
+                )
+
+            # Create custom step to ride anode potential plateau
+            anode_potential_step = pybamm.step.CustomStepImplicit(
+                anode_potential_cutoff,
+                direction="charge",
+                duration=max_time_s,
+                termination=riding_terminations,
+            )
+
+            # CC phase terminations
+            cc_terminations = [
+                pybamm.step.CustomTermination(
+                    "Anode potential cut-off [V]", anode_potential_cutoff
+                ),
+                f"{upper_voltage}V",
+            ]
+            if temp_threshold is not None:
+                cc_terminations.append(
+                    pybamm.step.CustomTermination(
+                        "Jelly roll temperature cut-off [K]", temperature_cutoff
+                    )
+                )
+
+            # Parse C-rate from experiment string (e.g., "Charge at 10C for 3600 seconds")
+            c_rate_match = re.search(r"at\s+([\d.]+)C", exp_str)
+            c_rate = float(c_rate_match.group(1)) if c_rate_match else 1.0
+
+            # CV hold with time limit
+            cv_hold_step = pybamm.step.voltage(
+                upper_voltage,
+                duration=max_time_s,
+                termination=f"C/{int(1/cv_termination)}",
+            )
+
+            experiment = pybamm.Experiment(
+                [
+                    (
+                        # Phase 1: CC charge until anode potential threshold
+                        pybamm.step.c_rate(
+                            -c_rate,
+                            duration=max_time_s,
+                            termination=cc_terminations,
+                        ),
+                        # Phase 2: Ride anode potential plateau
+                        anode_potential_step,
+                        # Phase 3: CV hold until low current or time limit
+                        cv_hold_step,
+                    ),
+                ],
+                period=period,
+                termination=f"{max_time_s} seconds",
+            )
+
+        elif termination_conditions:
+            # Standard mode with custom terminations
+            base_exp_str = re.sub(r"\s+or until\s+[\d.]+\s*V", "", exp_str)
+
+            # Determine voltage limit based on direction
+            if "charge" in exp_str.lower():
+                termination_conditions.append(f"{upper_voltage}V")
+            else:
+                termination_conditions.append(f"{lower_voltage}V")
+
+            experiment = pybamm.Experiment(
+                [
+                    ("Rest for 1 seconds"),
+                    (
+                        pybamm.step.string(
+                            base_exp_str,
+                            termination=termination_conditions,
+                        ),
+                    ),
+                ],
+                period=period,
+            )
+        else:
+            # Simple mode: use experiment string directly
+            experiment = pybamm.Experiment(
+                [
+                    ("Rest for 1 seconds"),
+                    (exp_str,),
+                ],
+                period=period,
+            )
+
+        # Common simulation logic for all experiment branches
+        model = pybamm.lithium_ion.SPMe(options=model_options)
+
+        # Add anode potential variable for lithium plating monitoring
+        # Use potential at separator interface (minimum during charging, where plating occurs first)
+        model.variables["Anode potential [V]"] = model.variables[
+            "Negative electrode surface potential difference at separator interface [V]"
+        ]
+
+        sim = pybamm.Simulation(
+            model,
+            parameter_values=default_params,
+            experiment=experiment,
+            var_pts=var_pts,
+        )
+
+        try:
+            solution = sim.solve(initial_soc=initial_soc, solver=solver)
+
+            # For fast charge with anode riding, use full solution; otherwise extract cycle
+            if simulation_config.get("ride_anode_potential"):
+                data_source = solution
+            elif hasattr(solution, "cycles") and len(solution.cycles) > 1:
+                data_source = solution.cycles[1]
+            else:
+                data_source = solution
+
+            result = {
+                "time_s": data_source["Time [s]"].entries,
+                "voltage_V": data_source["Terminal voltage [V]"].entries,
+                "current_A": data_source["Current [A]"].entries,
+                "temperature_K": data_source[
+                    "Volume-averaged cell temperature [K]"
+                ].entries,
+                "capacity_Ah": data_source["Discharge capacity [A.h]"].entries,
+                "energy_Wh": data_source["Discharge energy [W.h]"].entries,
+                "power_W": data_source["Power [W]"].entries,
+                "anode_potential_V": data_source["Anode potential [V]"].entries,
+                "experiment_label": label,
+                "success": True,
+                "config": simulation_config,
+            }
+
+            print(f"  Completed: {len(result['time_s'])} data points")
+            all_results.append(result)
+
+        except pybamm.SolverError as e:
+            print(f"  Failed: {str(e)[:60]}")
+
+    return all_results
+
+
+def _run_drive_cycle(
+    drive_cycle: dict,
+    simulation_config: dict,
+    default_params: pybamm.ParameterValues,
+    model_options: dict,
+) -> list[dict]:
+    """
+    Run a drive cycle simulation with time-varying power or C-rate input.
+
+    Args:
+        drive_cycle: Dict containing:
+            - time_s: Array of time points [s]
+            - power_W: Array of power values [W] (positive = discharge), OR
+            - c_rate: Array of C-rate values (positive = discharge)
+            - label: Optional label for the drive cycle
+        simulation_config: Full simulation configuration
+        default_params: Calibrated PyBaMM parameters
+        model_options: PyBaMM model options
+
+    Returns:
+        List with single result dictionary
+    """
+    print("\n" + "=" * 80)
+    print("RUNNING DRIVE CYCLE")
+    print("=" * 80)
+
+    time_s = np.array(drive_cycle["time_s"])
+    label = drive_cycle.get("label", "drive_cycle")
+
+    # Determine drive cycle type: power_W or c_rate
+    if "power_W" in drive_cycle:
+        drive_type = "power"
+        values = np.array(drive_cycle["power_W"])
+        print(f"  Type: Power")
+        print(f"  Power range: {values.min():.1f} to {values.max():.1f} W")
+        drive_data = np.column_stack((time_s, values))
+        drive_cycle_step = pybamm.step.power(drive_data, duration=time_s[-1])
+    elif "c_rate" in drive_cycle:
+        drive_type = "c_rate"
+        values = np.array(drive_cycle["c_rate"])
+        print(f"  Type: C-rate")
+        print(f"  C-rate range: {values.min():.3f} to {values.max():.3f} C")
+        drive_data = np.column_stack((time_s, values))
+        drive_cycle_step = pybamm.step.c_rate(drive_data, duration=time_s[-1])
+    else:
+        raise ValueError("drive_cycle must contain either 'power_W' or 'c_rate'")
+
+    print(f"  Label: {label}")
+    print(f"  Duration: {time_s[-1]:.1f} s ({time_s[-1]/60:.1f} min)")
+    print(f"  Data points: {len(time_s)}")
+
+    period = simulation_config.get("period", "1 second")
     experiment = pybamm.Experiment(
-        [
-            ("Rest for 1 seconds"),
-            (experiment_str,),
-        ],
+        [drive_cycle_step],
         period=period,
     )
 
+    # Create model
     model = pybamm.lithium_ion.SPMe(options=model_options)
-    sim = pybamm.Simulation(
-        model, parameter_values=default_params, experiment=experiment, var_pts=var_pts
+
+    # Add anode potential variable
+    model.variables["Anode potential [V]"] = model.variables[
+        "Negative electrode surface potential difference at separator interface [V]"
+    ]
+
+    # Setup simulation
+    var_pts = {"x_n": 10, "x_s": 10, "x_p": 10, "r_n": 10, "r_p": 10}
+    solver = pybamm.IDAKLUSolver(
+        atol=1e-4,
+        rtol=1e-4,
+        output_variables=[
+            "Time [s]",
+            "Terminal voltage [V]",
+            "Current [A]",
+            "Discharge capacity [A.h]",
+            "Discharge energy [W.h]",
+            "Volume-averaged cell temperature [K]",
+            "Power [W]",
+            "Anode potential [V]",
+        ],
     )
 
+    sim = pybamm.Simulation(
+        model,
+        parameter_values=default_params,
+        experiment=experiment,
+        var_pts=var_pts,
+    )
+
+    initial_soc = simulation_config.get("initial_soc", 0.8)
+
     try:
+        print(f"  Running simulation (initial SOC: {initial_soc*100:.0f}%)...")
         solution = sim.solve(initial_soc=initial_soc, solver=solver)
 
-        # Extract data from the main cycle (cycle index 1)
-        if hasattr(solution, "cycles") and len(solution.cycles) > 1:
-            cycle = solution.cycles[1]
-        else:
-            cycle = solution
-
         result = {
-            "time_s": cycle["Time [s]"].entries,
-            "voltage_V": cycle["Terminal voltage [V]"].entries,
-            "current_A": cycle["Current [A]"].entries,
-            "temperature_K": cycle["Volume-averaged cell temperature [K]"].entries,
-            "capacity_Ah": cycle["Discharge capacity [A.h]"].entries,
-            "energy_Wh": cycle["Discharge energy [W.h]"].entries,
-            "power_W": cycle["Power [W]"].entries,
-            "experiment_label": experiment_label,
+            "time_s": solution["Time [s]"].entries,
+            "voltage_V": solution["Terminal voltage [V]"].entries,
+            "current_A": solution["Current [A]"].entries,
+            "temperature_K": solution["Volume-averaged cell temperature [K]"].entries,
+            "capacity_Ah": solution["Discharge capacity [A.h]"].entries,
+            "energy_Wh": solution["Discharge energy [W.h]"].entries,
+            "power_W": solution["Power [W]"].entries,
+            "anode_potential_V": solution["Anode potential [V]"].entries,
+            "experiment_label": label,
             "success": True,
             "config": simulation_config,
         }
 
         print(f"  Completed: {len(result['time_s'])} data points")
-        return result
+        return [result]
 
     except pybamm.SolverError as e:
-        print(f"  Failed: {str(e)[:60]}")
-        return {
-            "time_s": np.array([]),
-            "voltage_V": np.array([]),
-            "current_A": np.array([]),
-            "temperature_K": np.array([]),
-            "capacity_Ah": np.array([]),
-            "energy_Wh": np.array([]),
-            "power_W": np.array([]),
-            "experiment_label": experiment_label,
+        print(f"  Failed: {str(e)[:100]}")
+        return [{
+            "experiment_label": label,
             "success": False,
             "error": str(e),
             "config": simulation_config,
-        }
+        }]
