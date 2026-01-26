@@ -1,1441 +1,1441 @@
-Time_Minutes,Power_PerUnit,Description
-0,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1,0.0,"Peak shaving (positive=charge, negative=discharge)"
-2,0.0,"Peak shaving (positive=charge, negative=discharge)"
-3,0.0,"Peak shaving (positive=charge, negative=discharge)"
-4,0.0,"Peak shaving (positive=charge, negative=discharge)"
-5,0.0,"Peak shaving (positive=charge, negative=discharge)"
-6,0.0,"Peak shaving (positive=charge, negative=discharge)"
-7,0.0,"Peak shaving (positive=charge, negative=discharge)"
-8,0.0,"Peak shaving (positive=charge, negative=discharge)"
-9,0.0,"Peak shaving (positive=charge, negative=discharge)"
-10,0.0,"Peak shaving (positive=charge, negative=discharge)"
-11,0.0,"Peak shaving (positive=charge, negative=discharge)"
-12,0.0,"Peak shaving (positive=charge, negative=discharge)"
-13,0.0,"Peak shaving (positive=charge, negative=discharge)"
-14,0.0,"Peak shaving (positive=charge, negative=discharge)"
-15,0.0,"Peak shaving (positive=charge, negative=discharge)"
-16,0.0,"Peak shaving (positive=charge, negative=discharge)"
-17,0.0,"Peak shaving (positive=charge, negative=discharge)"
-18,0.0,"Peak shaving (positive=charge, negative=discharge)"
-19,0.0,"Peak shaving (positive=charge, negative=discharge)"
-20,0.0,"Peak shaving (positive=charge, negative=discharge)"
-21,0.0,"Peak shaving (positive=charge, negative=discharge)"
-22,0.0,"Peak shaving (positive=charge, negative=discharge)"
-23,0.0,"Peak shaving (positive=charge, negative=discharge)"
-24,0.0,"Peak shaving (positive=charge, negative=discharge)"
-25,0.0,"Peak shaving (positive=charge, negative=discharge)"
-26,0.0,"Peak shaving (positive=charge, negative=discharge)"
-27,0.0,"Peak shaving (positive=charge, negative=discharge)"
-28,0.0,"Peak shaving (positive=charge, negative=discharge)"
-29,0.0,"Peak shaving (positive=charge, negative=discharge)"
-30,0.0,"Peak shaving (positive=charge, negative=discharge)"
-31,0.0,"Peak shaving (positive=charge, negative=discharge)"
-32,0.0,"Peak shaving (positive=charge, negative=discharge)"
-33,0.0,"Peak shaving (positive=charge, negative=discharge)"
-34,0.0,"Peak shaving (positive=charge, negative=discharge)"
-35,0.0,"Peak shaving (positive=charge, negative=discharge)"
-36,0.0,"Peak shaving (positive=charge, negative=discharge)"
-37,0.0,"Peak shaving (positive=charge, negative=discharge)"
-38,0.0,"Peak shaving (positive=charge, negative=discharge)"
-39,0.0,"Peak shaving (positive=charge, negative=discharge)"
-40,0.0,"Peak shaving (positive=charge, negative=discharge)"
-41,0.0,"Peak shaving (positive=charge, negative=discharge)"
-42,0.0,"Peak shaving (positive=charge, negative=discharge)"
-43,0.0,"Peak shaving (positive=charge, negative=discharge)"
-44,0.0,"Peak shaving (positive=charge, negative=discharge)"
-45,0.0,"Peak shaving (positive=charge, negative=discharge)"
-46,0.0,"Peak shaving (positive=charge, negative=discharge)"
-47,0.0,"Peak shaving (positive=charge, negative=discharge)"
-48,0.0,"Peak shaving (positive=charge, negative=discharge)"
-49,0.0,"Peak shaving (positive=charge, negative=discharge)"
-50,0.0,"Peak shaving (positive=charge, negative=discharge)"
-51,0.0,"Peak shaving (positive=charge, negative=discharge)"
-52,0.0,"Peak shaving (positive=charge, negative=discharge)"
-53,0.0,"Peak shaving (positive=charge, negative=discharge)"
-54,0.0,"Peak shaving (positive=charge, negative=discharge)"
-55,0.0,"Peak shaving (positive=charge, negative=discharge)"
-56,0.0,"Peak shaving (positive=charge, negative=discharge)"
-57,0.0,"Peak shaving (positive=charge, negative=discharge)"
-58,0.0,"Peak shaving (positive=charge, negative=discharge)"
-59,0.0,"Peak shaving (positive=charge, negative=discharge)"
-60,0.4,"Peak shaving (positive=charge, negative=discharge)"
-61,0.4,"Peak shaving (positive=charge, negative=discharge)"
-62,0.4,"Peak shaving (positive=charge, negative=discharge)"
-63,0.4,"Peak shaving (positive=charge, negative=discharge)"
-64,0.4,"Peak shaving (positive=charge, negative=discharge)"
-65,0.4,"Peak shaving (positive=charge, negative=discharge)"
-66,0.4,"Peak shaving (positive=charge, negative=discharge)"
-67,0.4,"Peak shaving (positive=charge, negative=discharge)"
-68,0.4,"Peak shaving (positive=charge, negative=discharge)"
-69,0.4,"Peak shaving (positive=charge, negative=discharge)"
-70,0.4,"Peak shaving (positive=charge, negative=discharge)"
-71,0.4,"Peak shaving (positive=charge, negative=discharge)"
-72,0.4,"Peak shaving (positive=charge, negative=discharge)"
-73,0.4,"Peak shaving (positive=charge, negative=discharge)"
-74,0.4,"Peak shaving (positive=charge, negative=discharge)"
-75,0.4,"Peak shaving (positive=charge, negative=discharge)"
-76,0.4,"Peak shaving (positive=charge, negative=discharge)"
-77,0.4,"Peak shaving (positive=charge, negative=discharge)"
-78,0.4,"Peak shaving (positive=charge, negative=discharge)"
-79,0.4,"Peak shaving (positive=charge, negative=discharge)"
-80,0.4,"Peak shaving (positive=charge, negative=discharge)"
-81,0.4,"Peak shaving (positive=charge, negative=discharge)"
-82,0.4,"Peak shaving (positive=charge, negative=discharge)"
-83,0.4,"Peak shaving (positive=charge, negative=discharge)"
-84,0.4,"Peak shaving (positive=charge, negative=discharge)"
-85,0.4,"Peak shaving (positive=charge, negative=discharge)"
-86,0.4,"Peak shaving (positive=charge, negative=discharge)"
-87,0.4,"Peak shaving (positive=charge, negative=discharge)"
-88,0.4,"Peak shaving (positive=charge, negative=discharge)"
-89,0.4,"Peak shaving (positive=charge, negative=discharge)"
-90,0.4,"Peak shaving (positive=charge, negative=discharge)"
-91,0.4,"Peak shaving (positive=charge, negative=discharge)"
-92,0.4,"Peak shaving (positive=charge, negative=discharge)"
-93,0.4,"Peak shaving (positive=charge, negative=discharge)"
-94,0.4,"Peak shaving (positive=charge, negative=discharge)"
-95,0.4,"Peak shaving (positive=charge, negative=discharge)"
-96,0.4,"Peak shaving (positive=charge, negative=discharge)"
-97,0.4,"Peak shaving (positive=charge, negative=discharge)"
-98,0.4,"Peak shaving (positive=charge, negative=discharge)"
-99,0.4,"Peak shaving (positive=charge, negative=discharge)"
-100,0.4,"Peak shaving (positive=charge, negative=discharge)"
-101,0.4,"Peak shaving (positive=charge, negative=discharge)"
-102,0.4,"Peak shaving (positive=charge, negative=discharge)"
-103,0.4,"Peak shaving (positive=charge, negative=discharge)"
-104,0.4,"Peak shaving (positive=charge, negative=discharge)"
-105,0.4,"Peak shaving (positive=charge, negative=discharge)"
-106,0.4,"Peak shaving (positive=charge, negative=discharge)"
-107,0.4,"Peak shaving (positive=charge, negative=discharge)"
-108,0.4,"Peak shaving (positive=charge, negative=discharge)"
-109,0.4,"Peak shaving (positive=charge, negative=discharge)"
-110,0.4,"Peak shaving (positive=charge, negative=discharge)"
-111,0.4,"Peak shaving (positive=charge, negative=discharge)"
-112,0.4,"Peak shaving (positive=charge, negative=discharge)"
-113,0.4,"Peak shaving (positive=charge, negative=discharge)"
-114,0.4,"Peak shaving (positive=charge, negative=discharge)"
-115,0.4,"Peak shaving (positive=charge, negative=discharge)"
-116,0.4,"Peak shaving (positive=charge, negative=discharge)"
-117,0.4,"Peak shaving (positive=charge, negative=discharge)"
-118,0.4,"Peak shaving (positive=charge, negative=discharge)"
-119,0.4,"Peak shaving (positive=charge, negative=discharge)"
-120,0.4,"Peak shaving (positive=charge, negative=discharge)"
-121,0.4,"Peak shaving (positive=charge, negative=discharge)"
-122,0.4,"Peak shaving (positive=charge, negative=discharge)"
-123,0.4,"Peak shaving (positive=charge, negative=discharge)"
-124,0.4,"Peak shaving (positive=charge, negative=discharge)"
-125,0.4,"Peak shaving (positive=charge, negative=discharge)"
-126,0.4,"Peak shaving (positive=charge, negative=discharge)"
-127,0.4,"Peak shaving (positive=charge, negative=discharge)"
-128,0.4,"Peak shaving (positive=charge, negative=discharge)"
-129,0.4,"Peak shaving (positive=charge, negative=discharge)"
-130,0.4,"Peak shaving (positive=charge, negative=discharge)"
-131,0.4,"Peak shaving (positive=charge, negative=discharge)"
-132,0.4,"Peak shaving (positive=charge, negative=discharge)"
-133,0.4,"Peak shaving (positive=charge, negative=discharge)"
-134,0.4,"Peak shaving (positive=charge, negative=discharge)"
-135,0.4,"Peak shaving (positive=charge, negative=discharge)"
-136,0.4,"Peak shaving (positive=charge, negative=discharge)"
-137,0.4,"Peak shaving (positive=charge, negative=discharge)"
-138,0.4,"Peak shaving (positive=charge, negative=discharge)"
-139,0.4,"Peak shaving (positive=charge, negative=discharge)"
-140,0.4,"Peak shaving (positive=charge, negative=discharge)"
-141,0.4,"Peak shaving (positive=charge, negative=discharge)"
-142,0.4,"Peak shaving (positive=charge, negative=discharge)"
-143,0.4,"Peak shaving (positive=charge, negative=discharge)"
-144,0.4,"Peak shaving (positive=charge, negative=discharge)"
-145,0.4,"Peak shaving (positive=charge, negative=discharge)"
-146,0.4,"Peak shaving (positive=charge, negative=discharge)"
-147,0.4,"Peak shaving (positive=charge, negative=discharge)"
-148,0.4,"Peak shaving (positive=charge, negative=discharge)"
-149,0.4,"Peak shaving (positive=charge, negative=discharge)"
-150,0.4,"Peak shaving (positive=charge, negative=discharge)"
-151,0.4,"Peak shaving (positive=charge, negative=discharge)"
-152,0.4,"Peak shaving (positive=charge, negative=discharge)"
-153,0.4,"Peak shaving (positive=charge, negative=discharge)"
-154,0.4,"Peak shaving (positive=charge, negative=discharge)"
-155,0.4,"Peak shaving (positive=charge, negative=discharge)"
-156,0.4,"Peak shaving (positive=charge, negative=discharge)"
-157,0.4,"Peak shaving (positive=charge, negative=discharge)"
-158,0.4,"Peak shaving (positive=charge, negative=discharge)"
-159,0.4,"Peak shaving (positive=charge, negative=discharge)"
-160,0.4,"Peak shaving (positive=charge, negative=discharge)"
-161,0.4,"Peak shaving (positive=charge, negative=discharge)"
-162,0.4,"Peak shaving (positive=charge, negative=discharge)"
-163,0.4,"Peak shaving (positive=charge, negative=discharge)"
-164,0.4,"Peak shaving (positive=charge, negative=discharge)"
-165,0.4,"Peak shaving (positive=charge, negative=discharge)"
-166,0.4,"Peak shaving (positive=charge, negative=discharge)"
-167,0.4,"Peak shaving (positive=charge, negative=discharge)"
-168,0.4,"Peak shaving (positive=charge, negative=discharge)"
-169,0.4,"Peak shaving (positive=charge, negative=discharge)"
-170,0.4,"Peak shaving (positive=charge, negative=discharge)"
-171,0.4,"Peak shaving (positive=charge, negative=discharge)"
-172,0.4,"Peak shaving (positive=charge, negative=discharge)"
-173,0.4,"Peak shaving (positive=charge, negative=discharge)"
-174,0.4,"Peak shaving (positive=charge, negative=discharge)"
-175,0.4,"Peak shaving (positive=charge, negative=discharge)"
-176,0.4,"Peak shaving (positive=charge, negative=discharge)"
-177,0.4,"Peak shaving (positive=charge, negative=discharge)"
-178,0.4,"Peak shaving (positive=charge, negative=discharge)"
-179,0.4,"Peak shaving (positive=charge, negative=discharge)"
-180,0.4,"Peak shaving (positive=charge, negative=discharge)"
-181,0.4,"Peak shaving (positive=charge, negative=discharge)"
-182,0.4,"Peak shaving (positive=charge, negative=discharge)"
-183,0.4,"Peak shaving (positive=charge, negative=discharge)"
-184,0.4,"Peak shaving (positive=charge, negative=discharge)"
-185,0.4,"Peak shaving (positive=charge, negative=discharge)"
-186,0.4,"Peak shaving (positive=charge, negative=discharge)"
-187,0.4,"Peak shaving (positive=charge, negative=discharge)"
-188,0.4,"Peak shaving (positive=charge, negative=discharge)"
-189,0.4,"Peak shaving (positive=charge, negative=discharge)"
-190,0.4,"Peak shaving (positive=charge, negative=discharge)"
-191,0.4,"Peak shaving (positive=charge, negative=discharge)"
-192,0.4,"Peak shaving (positive=charge, negative=discharge)"
-193,0.4,"Peak shaving (positive=charge, negative=discharge)"
-194,0.4,"Peak shaving (positive=charge, negative=discharge)"
-195,0.4,"Peak shaving (positive=charge, negative=discharge)"
-196,0.4,"Peak shaving (positive=charge, negative=discharge)"
-197,0.4,"Peak shaving (positive=charge, negative=discharge)"
-198,0.4,"Peak shaving (positive=charge, negative=discharge)"
-199,0.4,"Peak shaving (positive=charge, negative=discharge)"
-200,0.4,"Peak shaving (positive=charge, negative=discharge)"
-201,0.4,"Peak shaving (positive=charge, negative=discharge)"
-202,0.4,"Peak shaving (positive=charge, negative=discharge)"
-203,0.4,"Peak shaving (positive=charge, negative=discharge)"
-204,0.4,"Peak shaving (positive=charge, negative=discharge)"
-205,0.4,"Peak shaving (positive=charge, negative=discharge)"
-206,0.4,"Peak shaving (positive=charge, negative=discharge)"
-207,0.4,"Peak shaving (positive=charge, negative=discharge)"
-208,0.4,"Peak shaving (positive=charge, negative=discharge)"
-209,0.4,"Peak shaving (positive=charge, negative=discharge)"
-210,0.4,"Peak shaving (positive=charge, negative=discharge)"
-211,0.4,"Peak shaving (positive=charge, negative=discharge)"
-212,0.4,"Peak shaving (positive=charge, negative=discharge)"
-213,0.4,"Peak shaving (positive=charge, negative=discharge)"
-214,0.4,"Peak shaving (positive=charge, negative=discharge)"
-215,0.4,"Peak shaving (positive=charge, negative=discharge)"
-216,0.4,"Peak shaving (positive=charge, negative=discharge)"
-217,0.4,"Peak shaving (positive=charge, negative=discharge)"
-218,0.4,"Peak shaving (positive=charge, negative=discharge)"
-219,0.4,"Peak shaving (positive=charge, negative=discharge)"
-220,0.4,"Peak shaving (positive=charge, negative=discharge)"
-221,0.4,"Peak shaving (positive=charge, negative=discharge)"
-222,0.4,"Peak shaving (positive=charge, negative=discharge)"
-223,0.4,"Peak shaving (positive=charge, negative=discharge)"
-224,0.4,"Peak shaving (positive=charge, negative=discharge)"
-225,0.4,"Peak shaving (positive=charge, negative=discharge)"
-226,0.4,"Peak shaving (positive=charge, negative=discharge)"
-227,0.4,"Peak shaving (positive=charge, negative=discharge)"
-228,0.4,"Peak shaving (positive=charge, negative=discharge)"
-229,0.4,"Peak shaving (positive=charge, negative=discharge)"
-230,0.4,"Peak shaving (positive=charge, negative=discharge)"
-231,0.4,"Peak shaving (positive=charge, negative=discharge)"
-232,0.4,"Peak shaving (positive=charge, negative=discharge)"
-233,0.4,"Peak shaving (positive=charge, negative=discharge)"
-234,0.4,"Peak shaving (positive=charge, negative=discharge)"
-235,0.4,"Peak shaving (positive=charge, negative=discharge)"
-236,0.4,"Peak shaving (positive=charge, negative=discharge)"
-237,0.4,"Peak shaving (positive=charge, negative=discharge)"
-238,0.4,"Peak shaving (positive=charge, negative=discharge)"
-239,0.4,"Peak shaving (positive=charge, negative=discharge)"
-240,0.4,"Peak shaving (positive=charge, negative=discharge)"
-241,0.4,"Peak shaving (positive=charge, negative=discharge)"
-242,0.4,"Peak shaving (positive=charge, negative=discharge)"
-243,0.4,"Peak shaving (positive=charge, negative=discharge)"
-244,0.4,"Peak shaving (positive=charge, negative=discharge)"
-245,0.4,"Peak shaving (positive=charge, negative=discharge)"
-246,0.4,"Peak shaving (positive=charge, negative=discharge)"
-247,0.4,"Peak shaving (positive=charge, negative=discharge)"
-248,0.4,"Peak shaving (positive=charge, negative=discharge)"
-249,0.4,"Peak shaving (positive=charge, negative=discharge)"
-250,0.4,"Peak shaving (positive=charge, negative=discharge)"
-251,0.4,"Peak shaving (positive=charge, negative=discharge)"
-252,0.4,"Peak shaving (positive=charge, negative=discharge)"
-253,0.4,"Peak shaving (positive=charge, negative=discharge)"
-254,0.4,"Peak shaving (positive=charge, negative=discharge)"
-255,0.4,"Peak shaving (positive=charge, negative=discharge)"
-256,0.4,"Peak shaving (positive=charge, negative=discharge)"
-257,0.4,"Peak shaving (positive=charge, negative=discharge)"
-258,0.4,"Peak shaving (positive=charge, negative=discharge)"
-259,0.4,"Peak shaving (positive=charge, negative=discharge)"
-260,0.4,"Peak shaving (positive=charge, negative=discharge)"
-261,0.4,"Peak shaving (positive=charge, negative=discharge)"
-262,0.4,"Peak shaving (positive=charge, negative=discharge)"
-263,0.4,"Peak shaving (positive=charge, negative=discharge)"
-264,0.4,"Peak shaving (positive=charge, negative=discharge)"
-265,0.4,"Peak shaving (positive=charge, negative=discharge)"
-266,0.4,"Peak shaving (positive=charge, negative=discharge)"
-267,0.4,"Peak shaving (positive=charge, negative=discharge)"
-268,0.4,"Peak shaving (positive=charge, negative=discharge)"
-269,0.4,"Peak shaving (positive=charge, negative=discharge)"
-270,0.4,"Peak shaving (positive=charge, negative=discharge)"
-271,0.4,"Peak shaving (positive=charge, negative=discharge)"
-272,0.4,"Peak shaving (positive=charge, negative=discharge)"
-273,0.4,"Peak shaving (positive=charge, negative=discharge)"
-274,0.4,"Peak shaving (positive=charge, negative=discharge)"
-275,0.4,"Peak shaving (positive=charge, negative=discharge)"
-276,0.4,"Peak shaving (positive=charge, negative=discharge)"
-277,0.4,"Peak shaving (positive=charge, negative=discharge)"
-278,0.4,"Peak shaving (positive=charge, negative=discharge)"
-279,0.4,"Peak shaving (positive=charge, negative=discharge)"
-280,0.4,"Peak shaving (positive=charge, negative=discharge)"
-281,0.4,"Peak shaving (positive=charge, negative=discharge)"
-282,0.4,"Peak shaving (positive=charge, negative=discharge)"
-283,0.4,"Peak shaving (positive=charge, negative=discharge)"
-284,0.4,"Peak shaving (positive=charge, negative=discharge)"
-285,0.4,"Peak shaving (positive=charge, negative=discharge)"
-286,0.4,"Peak shaving (positive=charge, negative=discharge)"
-287,0.4,"Peak shaving (positive=charge, negative=discharge)"
-288,0.4,"Peak shaving (positive=charge, negative=discharge)"
-289,0.4,"Peak shaving (positive=charge, negative=discharge)"
-290,0.4,"Peak shaving (positive=charge, negative=discharge)"
-291,0.4,"Peak shaving (positive=charge, negative=discharge)"
-292,0.4,"Peak shaving (positive=charge, negative=discharge)"
-293,0.4,"Peak shaving (positive=charge, negative=discharge)"
-294,0.4,"Peak shaving (positive=charge, negative=discharge)"
-295,0.4,"Peak shaving (positive=charge, negative=discharge)"
-296,0.4,"Peak shaving (positive=charge, negative=discharge)"
-297,0.4,"Peak shaving (positive=charge, negative=discharge)"
-298,0.4,"Peak shaving (positive=charge, negative=discharge)"
-299,0.4,"Peak shaving (positive=charge, negative=discharge)"
-300,0.4,"Peak shaving (positive=charge, negative=discharge)"
-301,0.4,"Peak shaving (positive=charge, negative=discharge)"
-302,0.4,"Peak shaving (positive=charge, negative=discharge)"
-303,0.4,"Peak shaving (positive=charge, negative=discharge)"
-304,0.4,"Peak shaving (positive=charge, negative=discharge)"
-305,0.4,"Peak shaving (positive=charge, negative=discharge)"
-306,0.4,"Peak shaving (positive=charge, negative=discharge)"
-307,0.4,"Peak shaving (positive=charge, negative=discharge)"
-308,0.4,"Peak shaving (positive=charge, negative=discharge)"
-309,0.4,"Peak shaving (positive=charge, negative=discharge)"
-310,0.4,"Peak shaving (positive=charge, negative=discharge)"
-311,0.4,"Peak shaving (positive=charge, negative=discharge)"
-312,0.4,"Peak shaving (positive=charge, negative=discharge)"
-313,0.4,"Peak shaving (positive=charge, negative=discharge)"
-314,0.4,"Peak shaving (positive=charge, negative=discharge)"
-315,0.4,"Peak shaving (positive=charge, negative=discharge)"
-316,0.4,"Peak shaving (positive=charge, negative=discharge)"
-317,0.4,"Peak shaving (positive=charge, negative=discharge)"
-318,0.4,"Peak shaving (positive=charge, negative=discharge)"
-319,0.4,"Peak shaving (positive=charge, negative=discharge)"
-320,0.4,"Peak shaving (positive=charge, negative=discharge)"
-321,0.4,"Peak shaving (positive=charge, negative=discharge)"
-322,0.4,"Peak shaving (positive=charge, negative=discharge)"
-323,0.4,"Peak shaving (positive=charge, negative=discharge)"
-324,0.4,"Peak shaving (positive=charge, negative=discharge)"
-325,0.4,"Peak shaving (positive=charge, negative=discharge)"
-326,0.4,"Peak shaving (positive=charge, negative=discharge)"
-327,0.4,"Peak shaving (positive=charge, negative=discharge)"
-328,0.4,"Peak shaving (positive=charge, negative=discharge)"
-329,0.4,"Peak shaving (positive=charge, negative=discharge)"
-330,0.4,"Peak shaving (positive=charge, negative=discharge)"
-331,0.4,"Peak shaving (positive=charge, negative=discharge)"
-332,0.4,"Peak shaving (positive=charge, negative=discharge)"
-333,0.4,"Peak shaving (positive=charge, negative=discharge)"
-334,0.4,"Peak shaving (positive=charge, negative=discharge)"
-335,0.4,"Peak shaving (positive=charge, negative=discharge)"
-336,0.4,"Peak shaving (positive=charge, negative=discharge)"
-337,0.4,"Peak shaving (positive=charge, negative=discharge)"
-338,0.4,"Peak shaving (positive=charge, negative=discharge)"
-339,0.4,"Peak shaving (positive=charge, negative=discharge)"
-340,0.4,"Peak shaving (positive=charge, negative=discharge)"
-341,0.4,"Peak shaving (positive=charge, negative=discharge)"
-342,0.4,"Peak shaving (positive=charge, negative=discharge)"
-343,0.4,"Peak shaving (positive=charge, negative=discharge)"
-344,0.4,"Peak shaving (positive=charge, negative=discharge)"
-345,0.4,"Peak shaving (positive=charge, negative=discharge)"
-346,0.4,"Peak shaving (positive=charge, negative=discharge)"
-347,0.4,"Peak shaving (positive=charge, negative=discharge)"
-348,0.4,"Peak shaving (positive=charge, negative=discharge)"
-349,0.4,"Peak shaving (positive=charge, negative=discharge)"
-350,0.4,"Peak shaving (positive=charge, negative=discharge)"
-351,0.4,"Peak shaving (positive=charge, negative=discharge)"
-352,0.4,"Peak shaving (positive=charge, negative=discharge)"
-353,0.4,"Peak shaving (positive=charge, negative=discharge)"
-354,0.4,"Peak shaving (positive=charge, negative=discharge)"
-355,0.4,"Peak shaving (positive=charge, negative=discharge)"
-356,0.4,"Peak shaving (positive=charge, negative=discharge)"
-357,0.4,"Peak shaving (positive=charge, negative=discharge)"
-358,0.4,"Peak shaving (positive=charge, negative=discharge)"
-359,0.4,"Peak shaving (positive=charge, negative=discharge)"
-360,0.0,"Peak shaving (positive=charge, negative=discharge)"
-361,0.0,"Peak shaving (positive=charge, negative=discharge)"
-362,0.0,"Peak shaving (positive=charge, negative=discharge)"
-363,0.0,"Peak shaving (positive=charge, negative=discharge)"
-364,0.0,"Peak shaving (positive=charge, negative=discharge)"
-365,0.0,"Peak shaving (positive=charge, negative=discharge)"
-366,0.0,"Peak shaving (positive=charge, negative=discharge)"
-367,0.0,"Peak shaving (positive=charge, negative=discharge)"
-368,0.0,"Peak shaving (positive=charge, negative=discharge)"
-369,0.0,"Peak shaving (positive=charge, negative=discharge)"
-370,0.0,"Peak shaving (positive=charge, negative=discharge)"
-371,0.0,"Peak shaving (positive=charge, negative=discharge)"
-372,0.0,"Peak shaving (positive=charge, negative=discharge)"
-373,0.0,"Peak shaving (positive=charge, negative=discharge)"
-374,0.0,"Peak shaving (positive=charge, negative=discharge)"
-375,0.0,"Peak shaving (positive=charge, negative=discharge)"
-376,0.0,"Peak shaving (positive=charge, negative=discharge)"
-377,0.0,"Peak shaving (positive=charge, negative=discharge)"
-378,0.0,"Peak shaving (positive=charge, negative=discharge)"
-379,0.0,"Peak shaving (positive=charge, negative=discharge)"
-380,0.0,"Peak shaving (positive=charge, negative=discharge)"
-381,0.0,"Peak shaving (positive=charge, negative=discharge)"
-382,0.0,"Peak shaving (positive=charge, negative=discharge)"
-383,0.0,"Peak shaving (positive=charge, negative=discharge)"
-384,0.0,"Peak shaving (positive=charge, negative=discharge)"
-385,0.0,"Peak shaving (positive=charge, negative=discharge)"
-386,0.0,"Peak shaving (positive=charge, negative=discharge)"
-387,0.0,"Peak shaving (positive=charge, negative=discharge)"
-388,0.0,"Peak shaving (positive=charge, negative=discharge)"
-389,0.0,"Peak shaving (positive=charge, negative=discharge)"
-390,0.0,"Peak shaving (positive=charge, negative=discharge)"
-391,0.0,"Peak shaving (positive=charge, negative=discharge)"
-392,0.0,"Peak shaving (positive=charge, negative=discharge)"
-393,0.0,"Peak shaving (positive=charge, negative=discharge)"
-394,0.0,"Peak shaving (positive=charge, negative=discharge)"
-395,0.0,"Peak shaving (positive=charge, negative=discharge)"
-396,0.0,"Peak shaving (positive=charge, negative=discharge)"
-397,0.0,"Peak shaving (positive=charge, negative=discharge)"
-398,0.0,"Peak shaving (positive=charge, negative=discharge)"
-399,0.0,"Peak shaving (positive=charge, negative=discharge)"
-400,0.0,"Peak shaving (positive=charge, negative=discharge)"
-401,0.0,"Peak shaving (positive=charge, negative=discharge)"
-402,0.0,"Peak shaving (positive=charge, negative=discharge)"
-403,0.0,"Peak shaving (positive=charge, negative=discharge)"
-404,0.0,"Peak shaving (positive=charge, negative=discharge)"
-405,0.0,"Peak shaving (positive=charge, negative=discharge)"
-406,0.0,"Peak shaving (positive=charge, negative=discharge)"
-407,0.0,"Peak shaving (positive=charge, negative=discharge)"
-408,0.0,"Peak shaving (positive=charge, negative=discharge)"
-409,0.0,"Peak shaving (positive=charge, negative=discharge)"
-410,0.0,"Peak shaving (positive=charge, negative=discharge)"
-411,0.0,"Peak shaving (positive=charge, negative=discharge)"
-412,0.0,"Peak shaving (positive=charge, negative=discharge)"
-413,0.0,"Peak shaving (positive=charge, negative=discharge)"
-414,0.0,"Peak shaving (positive=charge, negative=discharge)"
-415,0.0,"Peak shaving (positive=charge, negative=discharge)"
-416,0.0,"Peak shaving (positive=charge, negative=discharge)"
-417,0.0,"Peak shaving (positive=charge, negative=discharge)"
-418,0.0,"Peak shaving (positive=charge, negative=discharge)"
-419,0.0,"Peak shaving (positive=charge, negative=discharge)"
-420,0.0,"Peak shaving (positive=charge, negative=discharge)"
-421,0.0,"Peak shaving (positive=charge, negative=discharge)"
-422,0.0,"Peak shaving (positive=charge, negative=discharge)"
-423,0.0,"Peak shaving (positive=charge, negative=discharge)"
-424,0.0,"Peak shaving (positive=charge, negative=discharge)"
-425,0.0,"Peak shaving (positive=charge, negative=discharge)"
-426,0.0,"Peak shaving (positive=charge, negative=discharge)"
-427,0.0,"Peak shaving (positive=charge, negative=discharge)"
-428,0.0,"Peak shaving (positive=charge, negative=discharge)"
-429,0.0,"Peak shaving (positive=charge, negative=discharge)"
-430,0.0,"Peak shaving (positive=charge, negative=discharge)"
-431,0.0,"Peak shaving (positive=charge, negative=discharge)"
-432,0.0,"Peak shaving (positive=charge, negative=discharge)"
-433,0.0,"Peak shaving (positive=charge, negative=discharge)"
-434,0.0,"Peak shaving (positive=charge, negative=discharge)"
-435,0.0,"Peak shaving (positive=charge, negative=discharge)"
-436,0.0,"Peak shaving (positive=charge, negative=discharge)"
-437,0.0,"Peak shaving (positive=charge, negative=discharge)"
-438,0.0,"Peak shaving (positive=charge, negative=discharge)"
-439,0.0,"Peak shaving (positive=charge, negative=discharge)"
-440,0.0,"Peak shaving (positive=charge, negative=discharge)"
-441,0.0,"Peak shaving (positive=charge, negative=discharge)"
-442,0.0,"Peak shaving (positive=charge, negative=discharge)"
-443,0.0,"Peak shaving (positive=charge, negative=discharge)"
-444,0.0,"Peak shaving (positive=charge, negative=discharge)"
-445,0.0,"Peak shaving (positive=charge, negative=discharge)"
-446,0.0,"Peak shaving (positive=charge, negative=discharge)"
-447,0.0,"Peak shaving (positive=charge, negative=discharge)"
-448,0.0,"Peak shaving (positive=charge, negative=discharge)"
-449,0.0,"Peak shaving (positive=charge, negative=discharge)"
-450,0.0,"Peak shaving (positive=charge, negative=discharge)"
-451,0.0,"Peak shaving (positive=charge, negative=discharge)"
-452,0.0,"Peak shaving (positive=charge, negative=discharge)"
-453,0.0,"Peak shaving (positive=charge, negative=discharge)"
-454,0.0,"Peak shaving (positive=charge, negative=discharge)"
-455,0.0,"Peak shaving (positive=charge, negative=discharge)"
-456,0.0,"Peak shaving (positive=charge, negative=discharge)"
-457,0.0,"Peak shaving (positive=charge, negative=discharge)"
-458,0.0,"Peak shaving (positive=charge, negative=discharge)"
-459,0.0,"Peak shaving (positive=charge, negative=discharge)"
-460,0.0,"Peak shaving (positive=charge, negative=discharge)"
-461,0.0,"Peak shaving (positive=charge, negative=discharge)"
-462,0.0,"Peak shaving (positive=charge, negative=discharge)"
-463,0.0,"Peak shaving (positive=charge, negative=discharge)"
-464,0.0,"Peak shaving (positive=charge, negative=discharge)"
-465,0.0,"Peak shaving (positive=charge, negative=discharge)"
-466,0.0,"Peak shaving (positive=charge, negative=discharge)"
-467,0.0,"Peak shaving (positive=charge, negative=discharge)"
-468,0.0,"Peak shaving (positive=charge, negative=discharge)"
-469,0.0,"Peak shaving (positive=charge, negative=discharge)"
-470,0.0,"Peak shaving (positive=charge, negative=discharge)"
-471,0.0,"Peak shaving (positive=charge, negative=discharge)"
-472,0.0,"Peak shaving (positive=charge, negative=discharge)"
-473,0.0,"Peak shaving (positive=charge, negative=discharge)"
-474,0.0,"Peak shaving (positive=charge, negative=discharge)"
-475,0.0,"Peak shaving (positive=charge, negative=discharge)"
-476,0.0,"Peak shaving (positive=charge, negative=discharge)"
-477,0.0,"Peak shaving (positive=charge, negative=discharge)"
-478,0.0,"Peak shaving (positive=charge, negative=discharge)"
-479,0.0,"Peak shaving (positive=charge, negative=discharge)"
-480,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-481,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-482,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-483,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-484,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-485,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-486,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-487,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-488,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-489,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-490,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-491,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-492,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-493,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-494,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-495,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-496,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-497,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-498,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-499,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-500,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-501,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-502,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-503,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-504,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-505,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-506,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-507,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-508,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-509,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-510,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-511,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-512,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-513,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-514,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-515,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-516,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-517,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-518,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-519,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-520,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-521,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-522,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-523,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-524,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-525,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-526,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-527,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-528,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-529,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-530,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-531,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-532,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-533,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-534,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-535,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-536,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-537,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-538,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-539,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-540,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-541,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-542,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-543,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-544,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-545,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-546,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-547,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-548,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-549,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-550,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-551,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-552,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-553,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-554,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-555,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-556,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-557,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-558,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-559,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-560,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-561,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-562,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-563,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-564,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-565,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-566,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-567,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-568,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-569,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-570,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-571,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-572,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-573,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-574,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-575,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-576,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-577,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-578,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-579,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-580,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-581,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-582,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-583,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-584,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-585,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-586,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-587,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-588,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-589,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-590,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-591,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-592,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-593,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-594,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-595,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-596,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-597,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-598,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-599,-0.6,"Peak shaving (positive=charge, negative=discharge)"
-600,0.0,"Peak shaving (positive=charge, negative=discharge)"
-601,0.0,"Peak shaving (positive=charge, negative=discharge)"
-602,0.0,"Peak shaving (positive=charge, negative=discharge)"
-603,0.0,"Peak shaving (positive=charge, negative=discharge)"
-604,0.0,"Peak shaving (positive=charge, negative=discharge)"
-605,0.0,"Peak shaving (positive=charge, negative=discharge)"
-606,0.0,"Peak shaving (positive=charge, negative=discharge)"
-607,0.0,"Peak shaving (positive=charge, negative=discharge)"
-608,0.0,"Peak shaving (positive=charge, negative=discharge)"
-609,0.0,"Peak shaving (positive=charge, negative=discharge)"
-610,0.0,"Peak shaving (positive=charge, negative=discharge)"
-611,0.0,"Peak shaving (positive=charge, negative=discharge)"
-612,0.0,"Peak shaving (positive=charge, negative=discharge)"
-613,0.0,"Peak shaving (positive=charge, negative=discharge)"
-614,0.0,"Peak shaving (positive=charge, negative=discharge)"
-615,0.0,"Peak shaving (positive=charge, negative=discharge)"
-616,0.0,"Peak shaving (positive=charge, negative=discharge)"
-617,0.0,"Peak shaving (positive=charge, negative=discharge)"
-618,0.0,"Peak shaving (positive=charge, negative=discharge)"
-619,0.0,"Peak shaving (positive=charge, negative=discharge)"
-620,0.0,"Peak shaving (positive=charge, negative=discharge)"
-621,0.0,"Peak shaving (positive=charge, negative=discharge)"
-622,0.0,"Peak shaving (positive=charge, negative=discharge)"
-623,0.0,"Peak shaving (positive=charge, negative=discharge)"
-624,0.0,"Peak shaving (positive=charge, negative=discharge)"
-625,0.0,"Peak shaving (positive=charge, negative=discharge)"
-626,0.0,"Peak shaving (positive=charge, negative=discharge)"
-627,0.0,"Peak shaving (positive=charge, negative=discharge)"
-628,0.0,"Peak shaving (positive=charge, negative=discharge)"
-629,0.0,"Peak shaving (positive=charge, negative=discharge)"
-630,0.0,"Peak shaving (positive=charge, negative=discharge)"
-631,0.0,"Peak shaving (positive=charge, negative=discharge)"
-632,0.0,"Peak shaving (positive=charge, negative=discharge)"
-633,0.0,"Peak shaving (positive=charge, negative=discharge)"
-634,0.0,"Peak shaving (positive=charge, negative=discharge)"
-635,0.0,"Peak shaving (positive=charge, negative=discharge)"
-636,0.0,"Peak shaving (positive=charge, negative=discharge)"
-637,0.0,"Peak shaving (positive=charge, negative=discharge)"
-638,0.0,"Peak shaving (positive=charge, negative=discharge)"
-639,0.0,"Peak shaving (positive=charge, negative=discharge)"
-640,0.0,"Peak shaving (positive=charge, negative=discharge)"
-641,0.0,"Peak shaving (positive=charge, negative=discharge)"
-642,0.0,"Peak shaving (positive=charge, negative=discharge)"
-643,0.0,"Peak shaving (positive=charge, negative=discharge)"
-644,0.0,"Peak shaving (positive=charge, negative=discharge)"
-645,0.0,"Peak shaving (positive=charge, negative=discharge)"
-646,0.0,"Peak shaving (positive=charge, negative=discharge)"
-647,0.0,"Peak shaving (positive=charge, negative=discharge)"
-648,0.0,"Peak shaving (positive=charge, negative=discharge)"
-649,0.0,"Peak shaving (positive=charge, negative=discharge)"
-650,0.0,"Peak shaving (positive=charge, negative=discharge)"
-651,0.0,"Peak shaving (positive=charge, negative=discharge)"
-652,0.0,"Peak shaving (positive=charge, negative=discharge)"
-653,0.0,"Peak shaving (positive=charge, negative=discharge)"
-654,0.0,"Peak shaving (positive=charge, negative=discharge)"
-655,0.0,"Peak shaving (positive=charge, negative=discharge)"
-656,0.0,"Peak shaving (positive=charge, negative=discharge)"
-657,0.0,"Peak shaving (positive=charge, negative=discharge)"
-658,0.0,"Peak shaving (positive=charge, negative=discharge)"
-659,0.0,"Peak shaving (positive=charge, negative=discharge)"
-660,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-661,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-662,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-663,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-664,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-665,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-666,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-667,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-668,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-669,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-670,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-671,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-672,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-673,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-674,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-675,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-676,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-677,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-678,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-679,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-680,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-681,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-682,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-683,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-684,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-685,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-686,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-687,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-688,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-689,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-690,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-691,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-692,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-693,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-694,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-695,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-696,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-697,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-698,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-699,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-700,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-701,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-702,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-703,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-704,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-705,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-706,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-707,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-708,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-709,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-710,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-711,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-712,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-713,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-714,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-715,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-716,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-717,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-718,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-719,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-720,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-721,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-722,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-723,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-724,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-725,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-726,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-727,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-728,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-729,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-730,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-731,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-732,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-733,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-734,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-735,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-736,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-737,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-738,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-739,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-740,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-741,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-742,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-743,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-744,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-745,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-746,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-747,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-748,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-749,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-750,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-751,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-752,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-753,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-754,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-755,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-756,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-757,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-758,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-759,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-760,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-761,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-762,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-763,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-764,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-765,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-766,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-767,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-768,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-769,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-770,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-771,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-772,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-773,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-774,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-775,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-776,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-777,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-778,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-779,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-780,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-781,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-782,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-783,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-784,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-785,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-786,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-787,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-788,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-789,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-790,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-791,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-792,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-793,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-794,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-795,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-796,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-797,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-798,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-799,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-800,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-801,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-802,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-803,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-804,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-805,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-806,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-807,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-808,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-809,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-810,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-811,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-812,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-813,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-814,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-815,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-816,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-817,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-818,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-819,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-820,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-821,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-822,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-823,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-824,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-825,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-826,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-827,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-828,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-829,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-830,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-831,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-832,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-833,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-834,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-835,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-836,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-837,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-838,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-839,-0.75,"Peak shaving (positive=charge, negative=discharge)"
-840,0.0,"Peak shaving (positive=charge, negative=discharge)"
-841,0.0,"Peak shaving (positive=charge, negative=discharge)"
-842,0.0,"Peak shaving (positive=charge, negative=discharge)"
-843,0.0,"Peak shaving (positive=charge, negative=discharge)"
-844,0.0,"Peak shaving (positive=charge, negative=discharge)"
-845,0.0,"Peak shaving (positive=charge, negative=discharge)"
-846,0.0,"Peak shaving (positive=charge, negative=discharge)"
-847,0.0,"Peak shaving (positive=charge, negative=discharge)"
-848,0.0,"Peak shaving (positive=charge, negative=discharge)"
-849,0.0,"Peak shaving (positive=charge, negative=discharge)"
-850,0.0,"Peak shaving (positive=charge, negative=discharge)"
-851,0.0,"Peak shaving (positive=charge, negative=discharge)"
-852,0.0,"Peak shaving (positive=charge, negative=discharge)"
-853,0.0,"Peak shaving (positive=charge, negative=discharge)"
-854,0.0,"Peak shaving (positive=charge, negative=discharge)"
-855,0.0,"Peak shaving (positive=charge, negative=discharge)"
-856,0.0,"Peak shaving (positive=charge, negative=discharge)"
-857,0.0,"Peak shaving (positive=charge, negative=discharge)"
-858,0.0,"Peak shaving (positive=charge, negative=discharge)"
-859,0.0,"Peak shaving (positive=charge, negative=discharge)"
-860,0.0,"Peak shaving (positive=charge, negative=discharge)"
-861,0.0,"Peak shaving (positive=charge, negative=discharge)"
-862,0.0,"Peak shaving (positive=charge, negative=discharge)"
-863,0.0,"Peak shaving (positive=charge, negative=discharge)"
-864,0.0,"Peak shaving (positive=charge, negative=discharge)"
-865,0.0,"Peak shaving (positive=charge, negative=discharge)"
-866,0.0,"Peak shaving (positive=charge, negative=discharge)"
-867,0.0,"Peak shaving (positive=charge, negative=discharge)"
-868,0.0,"Peak shaving (positive=charge, negative=discharge)"
-869,0.0,"Peak shaving (positive=charge, negative=discharge)"
-870,0.0,"Peak shaving (positive=charge, negative=discharge)"
-871,0.0,"Peak shaving (positive=charge, negative=discharge)"
-872,0.0,"Peak shaving (positive=charge, negative=discharge)"
-873,0.0,"Peak shaving (positive=charge, negative=discharge)"
-874,0.0,"Peak shaving (positive=charge, negative=discharge)"
-875,0.0,"Peak shaving (positive=charge, negative=discharge)"
-876,0.0,"Peak shaving (positive=charge, negative=discharge)"
-877,0.0,"Peak shaving (positive=charge, negative=discharge)"
-878,0.0,"Peak shaving (positive=charge, negative=discharge)"
-879,0.0,"Peak shaving (positive=charge, negative=discharge)"
-880,0.0,"Peak shaving (positive=charge, negative=discharge)"
-881,0.0,"Peak shaving (positive=charge, negative=discharge)"
-882,0.0,"Peak shaving (positive=charge, negative=discharge)"
-883,0.0,"Peak shaving (positive=charge, negative=discharge)"
-884,0.0,"Peak shaving (positive=charge, negative=discharge)"
-885,0.0,"Peak shaving (positive=charge, negative=discharge)"
-886,0.0,"Peak shaving (positive=charge, negative=discharge)"
-887,0.0,"Peak shaving (positive=charge, negative=discharge)"
-888,0.0,"Peak shaving (positive=charge, negative=discharge)"
-889,0.0,"Peak shaving (positive=charge, negative=discharge)"
-890,0.0,"Peak shaving (positive=charge, negative=discharge)"
-891,0.0,"Peak shaving (positive=charge, negative=discharge)"
-892,0.0,"Peak shaving (positive=charge, negative=discharge)"
-893,0.0,"Peak shaving (positive=charge, negative=discharge)"
-894,0.0,"Peak shaving (positive=charge, negative=discharge)"
-895,0.0,"Peak shaving (positive=charge, negative=discharge)"
-896,0.0,"Peak shaving (positive=charge, negative=discharge)"
-897,0.0,"Peak shaving (positive=charge, negative=discharge)"
-898,0.0,"Peak shaving (positive=charge, negative=discharge)"
-899,0.0,"Peak shaving (positive=charge, negative=discharge)"
-900,0.0,"Peak shaving (positive=charge, negative=discharge)"
-901,0.0,"Peak shaving (positive=charge, negative=discharge)"
-902,0.0,"Peak shaving (positive=charge, negative=discharge)"
-903,0.0,"Peak shaving (positive=charge, negative=discharge)"
-904,0.0,"Peak shaving (positive=charge, negative=discharge)"
-905,0.0,"Peak shaving (positive=charge, negative=discharge)"
-906,0.0,"Peak shaving (positive=charge, negative=discharge)"
-907,0.0,"Peak shaving (positive=charge, negative=discharge)"
-908,0.0,"Peak shaving (positive=charge, negative=discharge)"
-909,0.0,"Peak shaving (positive=charge, negative=discharge)"
-910,0.0,"Peak shaving (positive=charge, negative=discharge)"
-911,0.0,"Peak shaving (positive=charge, negative=discharge)"
-912,0.0,"Peak shaving (positive=charge, negative=discharge)"
-913,0.0,"Peak shaving (positive=charge, negative=discharge)"
-914,0.0,"Peak shaving (positive=charge, negative=discharge)"
-915,0.0,"Peak shaving (positive=charge, negative=discharge)"
-916,0.0,"Peak shaving (positive=charge, negative=discharge)"
-917,0.0,"Peak shaving (positive=charge, negative=discharge)"
-918,0.0,"Peak shaving (positive=charge, negative=discharge)"
-919,0.0,"Peak shaving (positive=charge, negative=discharge)"
-920,0.0,"Peak shaving (positive=charge, negative=discharge)"
-921,0.0,"Peak shaving (positive=charge, negative=discharge)"
-922,0.0,"Peak shaving (positive=charge, negative=discharge)"
-923,0.0,"Peak shaving (positive=charge, negative=discharge)"
-924,0.0,"Peak shaving (positive=charge, negative=discharge)"
-925,0.0,"Peak shaving (positive=charge, negative=discharge)"
-926,0.0,"Peak shaving (positive=charge, negative=discharge)"
-927,0.0,"Peak shaving (positive=charge, negative=discharge)"
-928,0.0,"Peak shaving (positive=charge, negative=discharge)"
-929,0.0,"Peak shaving (positive=charge, negative=discharge)"
-930,0.0,"Peak shaving (positive=charge, negative=discharge)"
-931,0.0,"Peak shaving (positive=charge, negative=discharge)"
-932,0.0,"Peak shaving (positive=charge, negative=discharge)"
-933,0.0,"Peak shaving (positive=charge, negative=discharge)"
-934,0.0,"Peak shaving (positive=charge, negative=discharge)"
-935,0.0,"Peak shaving (positive=charge, negative=discharge)"
-936,0.0,"Peak shaving (positive=charge, negative=discharge)"
-937,0.0,"Peak shaving (positive=charge, negative=discharge)"
-938,0.0,"Peak shaving (positive=charge, negative=discharge)"
-939,0.0,"Peak shaving (positive=charge, negative=discharge)"
-940,0.0,"Peak shaving (positive=charge, negative=discharge)"
-941,0.0,"Peak shaving (positive=charge, negative=discharge)"
-942,0.0,"Peak shaving (positive=charge, negative=discharge)"
-943,0.0,"Peak shaving (positive=charge, negative=discharge)"
-944,0.0,"Peak shaving (positive=charge, negative=discharge)"
-945,0.0,"Peak shaving (positive=charge, negative=discharge)"
-946,0.0,"Peak shaving (positive=charge, negative=discharge)"
-947,0.0,"Peak shaving (positive=charge, negative=discharge)"
-948,0.0,"Peak shaving (positive=charge, negative=discharge)"
-949,0.0,"Peak shaving (positive=charge, negative=discharge)"
-950,0.0,"Peak shaving (positive=charge, negative=discharge)"
-951,0.0,"Peak shaving (positive=charge, negative=discharge)"
-952,0.0,"Peak shaving (positive=charge, negative=discharge)"
-953,0.0,"Peak shaving (positive=charge, negative=discharge)"
-954,0.0,"Peak shaving (positive=charge, negative=discharge)"
-955,0.0,"Peak shaving (positive=charge, negative=discharge)"
-956,0.0,"Peak shaving (positive=charge, negative=discharge)"
-957,0.0,"Peak shaving (positive=charge, negative=discharge)"
-958,0.0,"Peak shaving (positive=charge, negative=discharge)"
-959,0.0,"Peak shaving (positive=charge, negative=discharge)"
-960,0.0,"Peak shaving (positive=charge, negative=discharge)"
-961,0.0,"Peak shaving (positive=charge, negative=discharge)"
-962,0.0,"Peak shaving (positive=charge, negative=discharge)"
-963,0.0,"Peak shaving (positive=charge, negative=discharge)"
-964,0.0,"Peak shaving (positive=charge, negative=discharge)"
-965,0.0,"Peak shaving (positive=charge, negative=discharge)"
-966,0.0,"Peak shaving (positive=charge, negative=discharge)"
-967,0.0,"Peak shaving (positive=charge, negative=discharge)"
-968,0.0,"Peak shaving (positive=charge, negative=discharge)"
-969,0.0,"Peak shaving (positive=charge, negative=discharge)"
-970,0.0,"Peak shaving (positive=charge, negative=discharge)"
-971,0.0,"Peak shaving (positive=charge, negative=discharge)"
-972,0.0,"Peak shaving (positive=charge, negative=discharge)"
-973,0.0,"Peak shaving (positive=charge, negative=discharge)"
-974,0.0,"Peak shaving (positive=charge, negative=discharge)"
-975,0.0,"Peak shaving (positive=charge, negative=discharge)"
-976,0.0,"Peak shaving (positive=charge, negative=discharge)"
-977,0.0,"Peak shaving (positive=charge, negative=discharge)"
-978,0.0,"Peak shaving (positive=charge, negative=discharge)"
-979,0.0,"Peak shaving (positive=charge, negative=discharge)"
-980,0.0,"Peak shaving (positive=charge, negative=discharge)"
-981,0.0,"Peak shaving (positive=charge, negative=discharge)"
-982,0.0,"Peak shaving (positive=charge, negative=discharge)"
-983,0.0,"Peak shaving (positive=charge, negative=discharge)"
-984,0.0,"Peak shaving (positive=charge, negative=discharge)"
-985,0.0,"Peak shaving (positive=charge, negative=discharge)"
-986,0.0,"Peak shaving (positive=charge, negative=discharge)"
-987,0.0,"Peak shaving (positive=charge, negative=discharge)"
-988,0.0,"Peak shaving (positive=charge, negative=discharge)"
-989,0.0,"Peak shaving (positive=charge, negative=discharge)"
-990,0.0,"Peak shaving (positive=charge, negative=discharge)"
-991,0.0,"Peak shaving (positive=charge, negative=discharge)"
-992,0.0,"Peak shaving (positive=charge, negative=discharge)"
-993,0.0,"Peak shaving (positive=charge, negative=discharge)"
-994,0.0,"Peak shaving (positive=charge, negative=discharge)"
-995,0.0,"Peak shaving (positive=charge, negative=discharge)"
-996,0.0,"Peak shaving (positive=charge, negative=discharge)"
-997,0.0,"Peak shaving (positive=charge, negative=discharge)"
-998,0.0,"Peak shaving (positive=charge, negative=discharge)"
-999,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1000,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1001,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1002,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1003,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1004,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1005,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1006,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1007,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1008,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1009,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1010,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1011,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1012,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1013,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1014,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1015,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1016,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1017,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1018,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1019,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1020,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1021,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1022,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1023,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1024,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1025,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1026,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1027,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1028,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1029,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1030,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1031,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1032,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1033,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1034,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1035,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1036,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1037,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1038,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1039,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1040,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1041,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1042,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1043,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1044,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1045,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1046,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1047,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1048,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1049,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1050,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1051,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1052,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1053,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1054,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1055,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1056,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1057,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1058,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1059,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1060,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1061,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1062,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1063,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1064,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1065,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1066,-0.4856,"Peak shaving (positive=charge, negative=discharge)"
-1067,-0.4961,"Peak shaving (positive=charge, negative=discharge)"
-1068,-0.5067,"Peak shaving (positive=charge, negative=discharge)"
-1069,-0.5172,"Peak shaving (positive=charge, negative=discharge)"
-1070,-0.5278,"Peak shaving (positive=charge, negative=discharge)"
-1071,-0.5383,"Peak shaving (positive=charge, negative=discharge)"
-1072,-0.5489,"Peak shaving (positive=charge, negative=discharge)"
-1073,-0.5594,"Peak shaving (positive=charge, negative=discharge)"
-1074,-0.57,"Peak shaving (positive=charge, negative=discharge)"
-1075,-0.5806,"Peak shaving (positive=charge, negative=discharge)"
-1076,-0.5911,"Peak shaving (positive=charge, negative=discharge)"
-1077,-0.6017,"Peak shaving (positive=charge, negative=discharge)"
-1078,-0.6122,"Peak shaving (positive=charge, negative=discharge)"
-1079,-0.6228,"Peak shaving (positive=charge, negative=discharge)"
-1080,-0.6333,"Peak shaving (positive=charge, negative=discharge)"
-1081,-0.6439,"Peak shaving (positive=charge, negative=discharge)"
-1082,-0.6544,"Peak shaving (positive=charge, negative=discharge)"
-1083,-0.665,"Peak shaving (positive=charge, negative=discharge)"
-1084,-0.6756,"Peak shaving (positive=charge, negative=discharge)"
-1085,-0.6861,"Peak shaving (positive=charge, negative=discharge)"
-1086,-0.6967,"Peak shaving (positive=charge, negative=discharge)"
-1087,-0.7072,"Peak shaving (positive=charge, negative=discharge)"
-1088,-0.7178,"Peak shaving (positive=charge, negative=discharge)"
-1089,-0.7283,"Peak shaving (positive=charge, negative=discharge)"
-1090,-0.7389,"Peak shaving (positive=charge, negative=discharge)"
-1091,-0.7494,"Peak shaving (positive=charge, negative=discharge)"
-1092,-0.76,"Peak shaving (positive=charge, negative=discharge)"
-1093,-0.7706,"Peak shaving (positive=charge, negative=discharge)"
-1094,-0.7811,"Peak shaving (positive=charge, negative=discharge)"
-1095,-0.7917,"Peak shaving (positive=charge, negative=discharge)"
-1096,-0.8022,"Peak shaving (positive=charge, negative=discharge)"
-1097,-0.8128,"Peak shaving (positive=charge, negative=discharge)"
-1098,-0.8233,"Peak shaving (positive=charge, negative=discharge)"
-1099,-0.8339,"Peak shaving (positive=charge, negative=discharge)"
-1100,-0.8444,"Peak shaving (positive=charge, negative=discharge)"
-1101,-0.855,"Peak shaving (positive=charge, negative=discharge)"
-1102,-0.8656,"Peak shaving (positive=charge, negative=discharge)"
-1103,-0.8761,"Peak shaving (positive=charge, negative=discharge)"
-1104,-0.8867,"Peak shaving (positive=charge, negative=discharge)"
-1105,-0.8972,"Peak shaving (positive=charge, negative=discharge)"
-1106,-0.9078,"Peak shaving (positive=charge, negative=discharge)"
-1107,-0.9183,"Peak shaving (positive=charge, negative=discharge)"
-1108,-0.9289,"Peak shaving (positive=charge, negative=discharge)"
-1109,-0.9394,"Peak shaving (positive=charge, negative=discharge)"
-1110,-0.95,"Peak shaving (positive=charge, negative=discharge)"
-1111,-0.9394,"Peak shaving (positive=charge, negative=discharge)"
-1112,-0.9289,"Peak shaving (positive=charge, negative=discharge)"
-1113,-0.9183,"Peak shaving (positive=charge, negative=discharge)"
-1114,-0.9078,"Peak shaving (positive=charge, negative=discharge)"
-1115,-0.8972,"Peak shaving (positive=charge, negative=discharge)"
-1116,-0.8867,"Peak shaving (positive=charge, negative=discharge)"
-1117,-0.8761,"Peak shaving (positive=charge, negative=discharge)"
-1118,-0.8656,"Peak shaving (positive=charge, negative=discharge)"
-1119,-0.855,"Peak shaving (positive=charge, negative=discharge)"
-1120,-0.8444,"Peak shaving (positive=charge, negative=discharge)"
-1121,-0.8339,"Peak shaving (positive=charge, negative=discharge)"
-1122,-0.8233,"Peak shaving (positive=charge, negative=discharge)"
-1123,-0.8128,"Peak shaving (positive=charge, negative=discharge)"
-1124,-0.8022,"Peak shaving (positive=charge, negative=discharge)"
-1125,-0.7917,"Peak shaving (positive=charge, negative=discharge)"
-1126,-0.7811,"Peak shaving (positive=charge, negative=discharge)"
-1127,-0.7706,"Peak shaving (positive=charge, negative=discharge)"
-1128,-0.76,"Peak shaving (positive=charge, negative=discharge)"
-1129,-0.7494,"Peak shaving (positive=charge, negative=discharge)"
-1130,-0.7389,"Peak shaving (positive=charge, negative=discharge)"
-1131,-0.7283,"Peak shaving (positive=charge, negative=discharge)"
-1132,-0.7178,"Peak shaving (positive=charge, negative=discharge)"
-1133,-0.7072,"Peak shaving (positive=charge, negative=discharge)"
-1134,-0.6967,"Peak shaving (positive=charge, negative=discharge)"
-1135,-0.6861,"Peak shaving (positive=charge, negative=discharge)"
-1136,-0.6756,"Peak shaving (positive=charge, negative=discharge)"
-1137,-0.665,"Peak shaving (positive=charge, negative=discharge)"
-1138,-0.6544,"Peak shaving (positive=charge, negative=discharge)"
-1139,-0.6439,"Peak shaving (positive=charge, negative=discharge)"
-1140,-0.6333,"Peak shaving (positive=charge, negative=discharge)"
-1141,-0.6228,"Peak shaving (positive=charge, negative=discharge)"
-1142,-0.6122,"Peak shaving (positive=charge, negative=discharge)"
-1143,-0.6017,"Peak shaving (positive=charge, negative=discharge)"
-1144,-0.5911,"Peak shaving (positive=charge, negative=discharge)"
-1145,-0.5806,"Peak shaving (positive=charge, negative=discharge)"
-1146,-0.57,"Peak shaving (positive=charge, negative=discharge)"
-1147,-0.5594,"Peak shaving (positive=charge, negative=discharge)"
-1148,-0.5489,"Peak shaving (positive=charge, negative=discharge)"
-1149,-0.5383,"Peak shaving (positive=charge, negative=discharge)"
-1150,-0.5278,"Peak shaving (positive=charge, negative=discharge)"
-1151,-0.5172,"Peak shaving (positive=charge, negative=discharge)"
-1152,-0.5067,"Peak shaving (positive=charge, negative=discharge)"
-1153,-0.4961,"Peak shaving (positive=charge, negative=discharge)"
-1154,-0.4856,"Peak shaving (positive=charge, negative=discharge)"
-1155,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1156,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1157,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1158,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1159,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1160,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1161,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1162,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1163,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1164,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1165,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1166,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1167,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1168,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1169,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1170,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1171,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1172,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1173,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1174,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1175,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1176,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1177,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1178,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1179,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1180,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1181,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1182,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1183,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1184,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1185,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1186,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1187,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1188,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1189,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1190,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1191,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1192,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1193,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1194,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1195,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1196,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1197,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1198,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1199,-0.475,"Peak shaving (positive=charge, negative=discharge)"
-1200,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1201,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1202,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1203,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1204,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1205,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1206,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1207,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1208,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1209,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1210,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1211,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1212,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1213,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1214,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1215,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1216,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1217,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1218,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1219,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1220,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1221,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1222,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1223,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1224,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1225,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1226,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1227,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1228,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1229,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1230,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1231,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1232,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1233,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1234,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1235,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1236,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1237,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1238,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1239,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1240,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1241,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1242,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1243,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1244,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1245,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1246,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1247,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1248,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1249,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1250,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1251,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1252,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1253,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1254,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1255,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1256,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1257,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1258,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1259,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1260,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1261,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1262,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1263,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1264,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1265,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1266,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1267,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1268,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1269,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1270,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1271,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1272,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1273,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1274,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1275,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1276,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1277,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1278,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1279,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1280,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1281,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1282,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1283,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1284,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1285,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1286,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1287,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1288,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1289,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1290,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1291,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1292,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1293,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1294,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1295,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1296,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1297,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1298,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1299,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1300,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1301,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1302,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1303,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1304,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1305,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1306,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1307,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1308,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1309,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1310,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1311,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1312,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1313,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1314,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1315,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1316,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1317,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1318,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1319,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1320,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1321,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1322,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1323,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1324,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1325,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1326,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1327,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1328,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1329,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1330,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1331,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1332,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1333,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1334,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1335,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1336,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1337,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1338,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1339,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1340,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1341,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1342,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1343,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1344,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1345,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1346,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1347,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1348,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1349,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1350,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1351,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1352,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1353,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1354,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1355,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1356,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1357,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1358,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1359,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1360,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1361,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1362,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1363,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1364,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1365,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1366,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1367,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1368,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1369,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1370,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1371,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1372,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1373,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1374,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1375,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1376,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1377,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1378,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1379,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1380,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1381,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1382,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1383,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1384,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1385,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1386,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1387,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1388,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1389,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1390,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1391,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1392,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1393,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1394,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1395,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1396,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1397,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1398,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1399,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1400,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1401,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1402,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1403,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1404,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1405,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1406,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1407,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1408,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1409,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1410,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1411,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1412,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1413,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1414,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1415,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1416,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1417,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1418,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1419,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1420,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1421,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1422,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1423,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1424,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1425,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1426,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1427,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1428,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1429,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1430,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1431,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1432,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1433,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1434,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1435,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1436,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1437,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1438,0.0,"Peak shaving (positive=charge, negative=discharge)"
-1439,0.0,"Peak shaving (positive=charge, negative=discharge)"
+Time_Minutes,Power_PerUnit
+0,0.0
+1,0.0
+2,0.0
+3,0.0
+4,0.0
+5,0.0
+6,0.0
+7,0.0
+8,0.0
+9,0.0
+10,0.0
+11,0.0
+12,0.0
+13,0.0
+14,0.0
+15,0.0
+16,0.0
+17,0.0
+18,0.0
+19,0.0
+20,0.0
+21,0.0
+22,0.0
+23,0.0
+24,0.0
+25,0.0
+26,0.0
+27,0.0
+28,0.0
+29,0.0
+30,0.0
+31,0.0
+32,0.0
+33,0.0
+34,0.0
+35,0.0
+36,0.0
+37,0.0
+38,0.0
+39,0.0
+40,0.0
+41,0.0
+42,0.0
+43,0.0
+44,0.0
+45,0.0
+46,0.0
+47,0.0
+48,0.0
+49,0.0
+50,0.0
+51,0.0
+52,0.0
+53,0.0
+54,0.0
+55,0.0
+56,0.0
+57,0.0
+58,0.0
+59,0.0
+60,0.4
+61,0.4
+62,0.4
+63,0.4
+64,0.4
+65,0.4
+66,0.4
+67,0.4
+68,0.4
+69,0.4
+70,0.4
+71,0.4
+72,0.4
+73,0.4
+74,0.4
+75,0.4
+76,0.4
+77,0.4
+78,0.4
+79,0.4
+80,0.4
+81,0.4
+82,0.4
+83,0.4
+84,0.4
+85,0.4
+86,0.4
+87,0.4
+88,0.4
+89,0.4
+90,0.4
+91,0.4
+92,0.4
+93,0.4
+94,0.4
+95,0.4
+96,0.4
+97,0.4
+98,0.4
+99,0.4
+100,0.4
+101,0.4
+102,0.4
+103,0.4
+104,0.4
+105,0.4
+106,0.4
+107,0.4
+108,0.4
+109,0.4
+110,0.4
+111,0.4
+112,0.4
+113,0.4
+114,0.4
+115,0.4
+116,0.4
+117,0.4
+118,0.4
+119,0.4
+120,0.4
+121,0.4
+122,0.4
+123,0.4
+124,0.4
+125,0.4
+126,0.4
+127,0.4
+128,0.4
+129,0.4
+130,0.4
+131,0.4
+132,0.4
+133,0.4
+134,0.4
+135,0.4
+136,0.4
+137,0.4
+138,0.4
+139,0.4
+140,0.4
+141,0.4
+142,0.4
+143,0.4
+144,0.4
+145,0.4
+146,0.4
+147,0.4
+148,0.4
+149,0.4
+150,0.4
+151,0.4
+152,0.4
+153,0.4
+154,0.4
+155,0.4
+156,0.4
+157,0.4
+158,0.4
+159,0.4
+160,0.4
+161,0.4
+162,0.4
+163,0.4
+164,0.4
+165,0.4
+166,0.4
+167,0.4
+168,0.4
+169,0.4
+170,0.4
+171,0.4
+172,0.4
+173,0.4
+174,0.4
+175,0.4
+176,0.4
+177,0.4
+178,0.4
+179,0.4
+180,0.4
+181,0.4
+182,0.4
+183,0.4
+184,0.4
+185,0.4
+186,0.4
+187,0.4
+188,0.4
+189,0.4
+190,0.4
+191,0.4
+192,0.4
+193,0.4
+194,0.4
+195,0.4
+196,0.4
+197,0.4
+198,0.4
+199,0.4
+200,0.4
+201,0.4
+202,0.4
+203,0.4
+204,0.4
+205,0.4
+206,0.4
+207,0.4
+208,0.4
+209,0.4
+210,0.4
+211,0.4
+212,0.4
+213,0.4
+214,0.4
+215,0.4
+216,0.4
+217,0.4
+218,0.4
+219,0.4
+220,0.4
+221,0.4
+222,0.4
+223,0.4
+224,0.4
+225,0.4
+226,0.4
+227,0.4
+228,0.4
+229,0.4
+230,0.4
+231,0.4
+232,0.4
+233,0.4
+234,0.4
+235,0.4
+236,0.4
+237,0.4
+238,0.4
+239,0.4
+240,0.4
+241,0.4
+242,0.4
+243,0.4
+244,0.4
+245,0.4
+246,0.4
+247,0.4
+248,0.4
+249,0.4
+250,0.4
+251,0.4
+252,0.4
+253,0.4
+254,0.4
+255,0.4
+256,0.4
+257,0.4
+258,0.4
+259,0.4
+260,0.4
+261,0.4
+262,0.4
+263,0.4
+264,0.4
+265,0.4
+266,0.4
+267,0.4
+268,0.4
+269,0.4
+270,0.4
+271,0.4
+272,0.4
+273,0.4
+274,0.4
+275,0.4
+276,0.4
+277,0.4
+278,0.4
+279,0.4
+280,0.4
+281,0.4
+282,0.4
+283,0.4
+284,0.4
+285,0.4
+286,0.4
+287,0.4
+288,0.4
+289,0.4
+290,0.4
+291,0.4
+292,0.4
+293,0.4
+294,0.4
+295,0.4
+296,0.4
+297,0.4
+298,0.4
+299,0.4
+300,0.4
+301,0.4
+302,0.4
+303,0.4
+304,0.4
+305,0.4
+306,0.4
+307,0.4
+308,0.4
+309,0.4
+310,0.4
+311,0.4
+312,0.4
+313,0.4
+314,0.4
+315,0.4
+316,0.4
+317,0.4
+318,0.4
+319,0.4
+320,0.4
+321,0.4
+322,0.4
+323,0.4
+324,0.4
+325,0.4
+326,0.4
+327,0.4
+328,0.4
+329,0.4
+330,0.4
+331,0.4
+332,0.4
+333,0.4
+334,0.4
+335,0.4
+336,0.4
+337,0.4
+338,0.4
+339,0.4
+340,0.4
+341,0.4
+342,0.4
+343,0.4
+344,0.4
+345,0.4
+346,0.4
+347,0.4
+348,0.4
+349,0.4
+350,0.4
+351,0.4
+352,0.4
+353,0.4
+354,0.4
+355,0.4
+356,0.4
+357,0.4
+358,0.4
+359,0.4
+360,0.0
+361,0.0
+362,0.0
+363,0.0
+364,0.0
+365,0.0
+366,0.0
+367,0.0
+368,0.0
+369,0.0
+370,0.0
+371,0.0
+372,0.0
+373,0.0
+374,0.0
+375,0.0
+376,0.0
+377,0.0
+378,0.0
+379,0.0
+380,0.0
+381,0.0
+382,0.0
+383,0.0
+384,0.0
+385,0.0
+386,0.0
+387,0.0
+388,0.0
+389,0.0
+390,0.0
+391,0.0
+392,0.0
+393,0.0
+394,0.0
+395,0.0
+396,0.0
+397,0.0
+398,0.0
+399,0.0
+400,0.0
+401,0.0
+402,0.0
+403,0.0
+404,0.0
+405,0.0
+406,0.0
+407,0.0
+408,0.0
+409,0.0
+410,0.0
+411,0.0
+412,0.0
+413,0.0
+414,0.0
+415,0.0
+416,0.0
+417,0.0
+418,0.0
+419,0.0
+420,0.0
+421,0.0
+422,0.0
+423,0.0
+424,0.0
+425,0.0
+426,0.0
+427,0.0
+428,0.0
+429,0.0
+430,0.0
+431,0.0
+432,0.0
+433,0.0
+434,0.0
+435,0.0
+436,0.0
+437,0.0
+438,0.0
+439,0.0
+440,0.0
+441,0.0
+442,0.0
+443,0.0
+444,0.0
+445,0.0
+446,0.0
+447,0.0
+448,0.0
+449,0.0
+450,0.0
+451,0.0
+452,0.0
+453,0.0
+454,0.0
+455,0.0
+456,0.0
+457,0.0
+458,0.0
+459,0.0
+460,0.0
+461,0.0
+462,0.0
+463,0.0
+464,0.0
+465,0.0
+466,0.0
+467,0.0
+468,0.0
+469,0.0
+470,0.0
+471,0.0
+472,0.0
+473,0.0
+474,0.0
+475,0.0
+476,0.0
+477,0.0
+478,0.0
+479,0.0
+480,-0.6
+481,-0.6
+482,-0.6
+483,-0.6
+484,-0.6
+485,-0.6
+486,-0.6
+487,-0.6
+488,-0.6
+489,-0.6
+490,-0.6
+491,-0.6
+492,-0.6
+493,-0.6
+494,-0.6
+495,-0.6
+496,-0.6
+497,-0.6
+498,-0.6
+499,-0.6
+500,-0.6
+501,-0.6
+502,-0.6
+503,-0.6
+504,-0.6
+505,-0.6
+506,-0.6
+507,-0.6
+508,-0.6
+509,-0.6
+510,-0.6
+511,-0.6
+512,-0.6
+513,-0.6
+514,-0.6
+515,-0.6
+516,-0.6
+517,-0.6
+518,-0.6
+519,-0.6
+520,-0.6
+521,-0.6
+522,-0.6
+523,-0.6
+524,-0.6
+525,-0.6
+526,-0.6
+527,-0.6
+528,-0.6
+529,-0.6
+530,-0.6
+531,-0.6
+532,-0.6
+533,-0.6
+534,-0.6
+535,-0.6
+536,-0.6
+537,-0.6
+538,-0.6
+539,-0.6
+540,-0.6
+541,-0.6
+542,-0.6
+543,-0.6
+544,-0.6
+545,-0.6
+546,-0.6
+547,-0.6
+548,-0.6
+549,-0.6
+550,-0.6
+551,-0.6
+552,-0.6
+553,-0.6
+554,-0.6
+555,-0.6
+556,-0.6
+557,-0.6
+558,-0.6
+559,-0.6
+560,-0.6
+561,-0.6
+562,-0.6
+563,-0.6
+564,-0.6
+565,-0.6
+566,-0.6
+567,-0.6
+568,-0.6
+569,-0.6
+570,-0.6
+571,-0.6
+572,-0.6
+573,-0.6
+574,-0.6
+575,-0.6
+576,-0.6
+577,-0.6
+578,-0.6
+579,-0.6
+580,-0.6
+581,-0.6
+582,-0.6
+583,-0.6
+584,-0.6
+585,-0.6
+586,-0.6
+587,-0.6
+588,-0.6
+589,-0.6
+590,-0.6
+591,-0.6
+592,-0.6
+593,-0.6
+594,-0.6
+595,-0.6
+596,-0.6
+597,-0.6
+598,-0.6
+599,-0.6
+600,0.0
+601,0.0
+602,0.0
+603,0.0
+604,0.0
+605,0.0
+606,0.0
+607,0.0
+608,0.0
+609,0.0
+610,0.0
+611,0.0
+612,0.0
+613,0.0
+614,0.0
+615,0.0
+616,0.0
+617,0.0
+618,0.0
+619,0.0
+620,0.0
+621,0.0
+622,0.0
+623,0.0
+624,0.0
+625,0.0
+626,0.0
+627,0.0
+628,0.0
+629,0.0
+630,0.0
+631,0.0
+632,0.0
+633,0.0
+634,0.0
+635,0.0
+636,0.0
+637,0.0
+638,0.0
+639,0.0
+640,0.0
+641,0.0
+642,0.0
+643,0.0
+644,0.0
+645,0.0
+646,0.0
+647,0.0
+648,0.0
+649,0.0
+650,0.0
+651,0.0
+652,0.0
+653,0.0
+654,0.0
+655,0.0
+656,0.0
+657,0.0
+658,0.0
+659,0.0
+660,-0.75
+661,-0.75
+662,-0.75
+663,-0.75
+664,-0.75
+665,-0.75
+666,-0.75
+667,-0.75
+668,-0.75
+669,-0.75
+670,-0.75
+671,-0.75
+672,-0.75
+673,-0.75
+674,-0.75
+675,-0.75
+676,-0.75
+677,-0.75
+678,-0.75
+679,-0.75
+680,-0.75
+681,-0.75
+682,-0.75
+683,-0.75
+684,-0.75
+685,-0.75
+686,-0.75
+687,-0.75
+688,-0.75
+689,-0.75
+690,-0.75
+691,-0.75
+692,-0.75
+693,-0.75
+694,-0.75
+695,-0.75
+696,-0.75
+697,-0.75
+698,-0.75
+699,-0.75
+700,-0.75
+701,-0.75
+702,-0.75
+703,-0.75
+704,-0.75
+705,-0.75
+706,-0.75
+707,-0.75
+708,-0.75
+709,-0.75
+710,-0.75
+711,-0.75
+712,-0.75
+713,-0.75
+714,-0.75
+715,-0.75
+716,-0.75
+717,-0.75
+718,-0.75
+719,-0.75
+720,-0.75
+721,-0.75
+722,-0.75
+723,-0.75
+724,-0.75
+725,-0.75
+726,-0.75
+727,-0.75
+728,-0.75
+729,-0.75
+730,-0.75
+731,-0.75
+732,-0.75
+733,-0.75
+734,-0.75
+735,-0.75
+736,-0.75
+737,-0.75
+738,-0.75
+739,-0.75
+740,-0.75
+741,-0.75
+742,-0.75
+743,-0.75
+744,-0.75
+745,-0.75
+746,-0.75
+747,-0.75
+748,-0.75
+749,-0.75
+750,-0.75
+751,-0.75
+752,-0.75
+753,-0.75
+754,-0.75
+755,-0.75
+756,-0.75
+757,-0.75
+758,-0.75
+759,-0.75
+760,-0.75
+761,-0.75
+762,-0.75
+763,-0.75
+764,-0.75
+765,-0.75
+766,-0.75
+767,-0.75
+768,-0.75
+769,-0.75
+770,-0.75
+771,-0.75
+772,-0.75
+773,-0.75
+774,-0.75
+775,-0.75
+776,-0.75
+777,-0.75
+778,-0.75
+779,-0.75
+780,-0.75
+781,-0.75
+782,-0.75
+783,-0.75
+784,-0.75
+785,-0.75
+786,-0.75
+787,-0.75
+788,-0.75
+789,-0.75
+790,-0.75
+791,-0.75
+792,-0.75
+793,-0.75
+794,-0.75
+795,-0.75
+796,-0.75
+797,-0.75
+798,-0.75
+799,-0.75
+800,-0.75
+801,-0.75
+802,-0.75
+803,-0.75
+804,-0.75
+805,-0.75
+806,-0.75
+807,-0.75
+808,-0.75
+809,-0.75
+810,-0.75
+811,-0.75
+812,-0.75
+813,-0.75
+814,-0.75
+815,-0.75
+816,-0.75
+817,-0.75
+818,-0.75
+819,-0.75
+820,-0.75
+821,-0.75
+822,-0.75
+823,-0.75
+824,-0.75
+825,-0.75
+826,-0.75
+827,-0.75
+828,-0.75
+829,-0.75
+830,-0.75
+831,-0.75
+832,-0.75
+833,-0.75
+834,-0.75
+835,-0.75
+836,-0.75
+837,-0.75
+838,-0.75
+839,-0.75
+840,0.0
+841,0.0
+842,0.0
+843,0.0
+844,0.0
+845,0.0
+846,0.0
+847,0.0
+848,0.0
+849,0.0
+850,0.0
+851,0.0
+852,0.0
+853,0.0
+854,0.0
+855,0.0
+856,0.0
+857,0.0
+858,0.0
+859,0.0
+860,0.0
+861,0.0
+862,0.0
+863,0.0
+864,0.0
+865,0.0
+866,0.0
+867,0.0
+868,0.0
+869,0.0
+870,0.0
+871,0.0
+872,0.0
+873,0.0
+874,0.0
+875,0.0
+876,0.0
+877,0.0
+878,0.0
+879,0.0
+880,0.0
+881,0.0
+882,0.0
+883,0.0
+884,0.0
+885,0.0
+886,0.0
+887,0.0
+888,0.0
+889,0.0
+890,0.0
+891,0.0
+892,0.0
+893,0.0
+894,0.0
+895,0.0
+896,0.0
+897,0.0
+898,0.0
+899,0.0
+900,0.0
+901,0.0
+902,0.0
+903,0.0
+904,0.0
+905,0.0
+906,0.0
+907,0.0
+908,0.0
+909,0.0
+910,0.0
+911,0.0
+912,0.0
+913,0.0
+914,0.0
+915,0.0
+916,0.0
+917,0.0
+918,0.0
+919,0.0
+920,0.0
+921,0.0
+922,0.0
+923,0.0
+924,0.0
+925,0.0
+926,0.0
+927,0.0
+928,0.0
+929,0.0
+930,0.0
+931,0.0
+932,0.0
+933,0.0
+934,0.0
+935,0.0
+936,0.0
+937,0.0
+938,0.0
+939,0.0
+940,0.0
+941,0.0
+942,0.0
+943,0.0
+944,0.0
+945,0.0
+946,0.0
+947,0.0
+948,0.0
+949,0.0
+950,0.0
+951,0.0
+952,0.0
+953,0.0
+954,0.0
+955,0.0
+956,0.0
+957,0.0
+958,0.0
+959,0.0
+960,0.0
+961,0.0
+962,0.0
+963,0.0
+964,0.0
+965,0.0
+966,0.0
+967,0.0
+968,0.0
+969,0.0
+970,0.0
+971,0.0
+972,0.0
+973,0.0
+974,0.0
+975,0.0
+976,0.0
+977,0.0
+978,0.0
+979,0.0
+980,0.0
+981,0.0
+982,0.0
+983,0.0
+984,0.0
+985,0.0
+986,0.0
+987,0.0
+988,0.0
+989,0.0
+990,0.0
+991,0.0
+992,0.0
+993,0.0
+994,0.0
+995,0.0
+996,0.0
+997,0.0
+998,0.0
+999,0.0
+1000,0.0
+1001,0.0
+1002,0.0
+1003,0.0
+1004,0.0
+1005,0.0
+1006,0.0
+1007,0.0
+1008,0.0
+1009,0.0
+1010,0.0
+1011,0.0
+1012,0.0
+1013,0.0
+1014,0.0
+1015,0.0
+1016,0.0
+1017,0.0
+1018,0.0
+1019,0.0
+1020,-0.475
+1021,-0.475
+1022,-0.475
+1023,-0.475
+1024,-0.475
+1025,-0.475
+1026,-0.475
+1027,-0.475
+1028,-0.475
+1029,-0.475
+1030,-0.475
+1031,-0.475
+1032,-0.475
+1033,-0.475
+1034,-0.475
+1035,-0.475
+1036,-0.475
+1037,-0.475
+1038,-0.475
+1039,-0.475
+1040,-0.475
+1041,-0.475
+1042,-0.475
+1043,-0.475
+1044,-0.475
+1045,-0.475
+1046,-0.475
+1047,-0.475
+1048,-0.475
+1049,-0.475
+1050,-0.475
+1051,-0.475
+1052,-0.475
+1053,-0.475
+1054,-0.475
+1055,-0.475
+1056,-0.475
+1057,-0.475
+1058,-0.475
+1059,-0.475
+1060,-0.475
+1061,-0.475
+1062,-0.475
+1063,-0.475
+1064,-0.475
+1065,-0.475
+1066,-0.4856
+1067,-0.4961
+1068,-0.5067
+1069,-0.5172
+1070,-0.5278
+1071,-0.5383
+1072,-0.5489
+1073,-0.5594
+1074,-0.57
+1075,-0.5806
+1076,-0.5911
+1077,-0.6017
+1078,-0.6122
+1079,-0.6228
+1080,-0.6333
+1081,-0.6439
+1082,-0.6544
+1083,-0.665
+1084,-0.6756
+1085,-0.6861
+1086,-0.6967
+1087,-0.7072
+1088,-0.7178
+1089,-0.7283
+1090,-0.7389
+1091,-0.7494
+1092,-0.76
+1093,-0.7706
+1094,-0.7811
+1095,-0.7917
+1096,-0.8022
+1097,-0.8128
+1098,-0.8233
+1099,-0.8339
+1100,-0.8444
+1101,-0.855
+1102,-0.8656
+1103,-0.8761
+1104,-0.8867
+1105,-0.8972
+1106,-0.9078
+1107,-0.9183
+1108,-0.9289
+1109,-0.9394
+1110,-0.95
+1111,-0.9394
+1112,-0.9289
+1113,-0.9183
+1114,-0.9078
+1115,-0.8972
+1116,-0.8867
+1117,-0.8761
+1118,-0.8656
+1119,-0.855
+1120,-0.8444
+1121,-0.8339
+1122,-0.8233
+1123,-0.8128
+1124,-0.8022
+1125,-0.7917
+1126,-0.7811
+1127,-0.7706
+1128,-0.76
+1129,-0.7494
+1130,-0.7389
+1131,-0.7283
+1132,-0.7178
+1133,-0.7072
+1134,-0.6967
+1135,-0.6861
+1136,-0.6756
+1137,-0.665
+1138,-0.6544
+1139,-0.6439
+1140,-0.6333
+1141,-0.6228
+1142,-0.6122
+1143,-0.6017
+1144,-0.5911
+1145,-0.5806
+1146,-0.57
+1147,-0.5594
+1148,-0.5489
+1149,-0.5383
+1150,-0.5278
+1151,-0.5172
+1152,-0.5067
+1153,-0.4961
+1154,-0.4856
+1155,-0.475
+1156,-0.475
+1157,-0.475
+1158,-0.475
+1159,-0.475
+1160,-0.475
+1161,-0.475
+1162,-0.475
+1163,-0.475
+1164,-0.475
+1165,-0.475
+1166,-0.475
+1167,-0.475
+1168,-0.475
+1169,-0.475
+1170,-0.475
+1171,-0.475
+1172,-0.475
+1173,-0.475
+1174,-0.475
+1175,-0.475
+1176,-0.475
+1177,-0.475
+1178,-0.475
+1179,-0.475
+1180,-0.475
+1181,-0.475
+1182,-0.475
+1183,-0.475
+1184,-0.475
+1185,-0.475
+1186,-0.475
+1187,-0.475
+1188,-0.475
+1189,-0.475
+1190,-0.475
+1191,-0.475
+1192,-0.475
+1193,-0.475
+1194,-0.475
+1195,-0.475
+1196,-0.475
+1197,-0.475
+1198,-0.475
+1199,-0.475
+1200,0.0
+1201,0.0
+1202,0.0
+1203,0.0
+1204,0.0
+1205,0.0
+1206,0.0
+1207,0.0
+1208,0.0
+1209,0.0
+1210,0.0
+1211,0.0
+1212,0.0
+1213,0.0
+1214,0.0
+1215,0.0
+1216,0.0
+1217,0.0
+1218,0.0
+1219,0.0
+1220,0.0
+1221,0.0
+1222,0.0
+1223,0.0
+1224,0.0
+1225,0.0
+1226,0.0
+1227,0.0
+1228,0.0
+1229,0.0
+1230,0.0
+1231,0.0
+1232,0.0
+1233,0.0
+1234,0.0
+1235,0.0
+1236,0.0
+1237,0.0
+1238,0.0
+1239,0.0
+1240,0.0
+1241,0.0
+1242,0.0
+1243,0.0
+1244,0.0
+1245,0.0
+1246,0.0
+1247,0.0
+1248,0.0
+1249,0.0
+1250,0.0
+1251,0.0
+1252,0.0
+1253,0.0
+1254,0.0
+1255,0.0
+1256,0.0
+1257,0.0
+1258,0.0
+1259,0.0
+1260,0.0
+1261,0.0
+1262,0.0
+1263,0.0
+1264,0.0
+1265,0.0
+1266,0.0
+1267,0.0
+1268,0.0
+1269,0.0
+1270,0.0
+1271,0.0
+1272,0.0
+1273,0.0
+1274,0.0
+1275,0.0
+1276,0.0
+1277,0.0
+1278,0.0
+1279,0.0
+1280,0.0
+1281,0.0
+1282,0.0
+1283,0.0
+1284,0.0
+1285,0.0
+1286,0.0
+1287,0.0
+1288,0.0
+1289,0.0
+1290,0.0
+1291,0.0
+1292,0.0
+1293,0.0
+1294,0.0
+1295,0.0
+1296,0.0
+1297,0.0
+1298,0.0
+1299,0.0
+1300,0.0
+1301,0.0
+1302,0.0
+1303,0.0
+1304,0.0
+1305,0.0
+1306,0.0
+1307,0.0
+1308,0.0
+1309,0.0
+1310,0.0
+1311,0.0
+1312,0.0
+1313,0.0
+1314,0.0
+1315,0.0
+1316,0.0
+1317,0.0
+1318,0.0
+1319,0.0
+1320,0.0
+1321,0.0
+1322,0.0
+1323,0.0
+1324,0.0
+1325,0.0
+1326,0.0
+1327,0.0
+1328,0.0
+1329,0.0
+1330,0.0
+1331,0.0
+1332,0.0
+1333,0.0
+1334,0.0
+1335,0.0
+1336,0.0
+1337,0.0
+1338,0.0
+1339,0.0
+1340,0.0
+1341,0.0
+1342,0.0
+1343,0.0
+1344,0.0
+1345,0.0
+1346,0.0
+1347,0.0
+1348,0.0
+1349,0.0
+1350,0.0
+1351,0.0
+1352,0.0
+1353,0.0
+1354,0.0
+1355,0.0
+1356,0.0
+1357,0.0
+1358,0.0
+1359,0.0
+1360,0.0
+1361,0.0
+1362,0.0
+1363,0.0
+1364,0.0
+1365,0.0
+1366,0.0
+1367,0.0
+1368,0.0
+1369,0.0
+1370,0.0
+1371,0.0
+1372,0.0
+1373,0.0
+1374,0.0
+1375,0.0
+1376,0.0
+1377,0.0
+1378,0.0
+1379,0.0
+1380,0.0
+1381,0.0
+1382,0.0
+1383,0.0
+1384,0.0
+1385,0.0
+1386,0.0
+1387,0.0
+1388,0.0
+1389,0.0
+1390,0.0
+1391,0.0
+1392,0.0
+1393,0.0
+1394,0.0
+1395,0.0
+1396,0.0
+1397,0.0
+1398,0.0
+1399,0.0
+1400,0.0
+1401,0.0
+1402,0.0
+1403,0.0
+1404,0.0
+1405,0.0
+1406,0.0
+1407,0.0
+1408,0.0
+1409,0.0
+1410,0.0
+1411,0.0
+1412,0.0
+1413,0.0
+1414,0.0
+1415,0.0
+1416,0.0
+1417,0.0
+1418,0.0
+1419,0.0
+1420,0.0
+1421,0.0
+1422,0.0
+1423,0.0
+1424,0.0
+1425,0.0
+1426,0.0
+1427,0.0
+1428,0.0
+1429,0.0
+1430,0.0
+1431,0.0
+1432,0.0
+1433,0.0
+1434,0.0
+1435,0.0
+1436,0.0
+1437,0.0
+1438,0.0
+1439,0.0
