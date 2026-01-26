@@ -116,9 +116,9 @@ All power values are normalized to per-unit (p.u.) values relative to the batter
 
 ### Data Format
 ```
-Time_Minutes,Power_PerUnit,Description
-0,-0.1234,Application-specific description
-1,0.5678,...
+Time_Minutes,Power_PerUnit
+0,-0.1234
+1,0.5678
 ```
 
 ### Key Performance Metrics
