@@ -242,9 +242,59 @@ def _run_pybamm_drive_cycle(
     # Determine drive cycle type: power_W
     values = np.array(drive_cycle["power_W"])
     drive_data = np.column_stack((time_s, values))
-    drive_cycle_step = pybamm.step.power(drive_data, duration=time_s[-1])
 
     period = simulation_config.get("period", "10 second")
+
+    # Get custom termination thresholds from config
+    anode_threshold = simulation_config.get("anode_potential_threshold_V")
+    temp_threshold = simulation_config.get("temperature_threshold_K")
+    lower_voltage = simulation_config["lower_voltage_cutoff"]
+    upper_voltage = simulation_config["upper_voltage_cutoff"]
+
+    # Define cutoff functions for custom terminations
+    def anode_potential_cutoff(variables):
+        return variables["Anode potential [V]"] - anode_threshold
+
+    def temperature_cutoff(variables):
+        return temp_threshold - variables["Volume-averaged cell temperature [K]"]
+
+    # Build termination conditions list
+    termination_conditions = []
+
+    if anode_threshold is not None:
+        termination_conditions.append(
+            pybamm.step.CustomTermination(
+                "Anode potential cut-off [V]", anode_potential_cutoff
+            )
+        )
+
+    if temp_threshold is not None:
+        termination_conditions.append(
+            pybamm.step.CustomTermination("Temperature cut-off [K]", temperature_cutoff)
+        )
+
+    # Add lower voltage cutoff as custom termination
+    def lower_voltage_cutoff(variables):
+        return variables["Terminal voltage [V]"] - lower_voltage
+
+    termination_conditions.append(
+        pybamm.step.CustomTermination("Lower voltage cut-off [V]", lower_voltage_cutoff)
+    )
+
+    # Add upper voltage cutoff as custom termination
+    def upper_voltage_cutoff(variables):
+        return upper_voltage - variables["Terminal voltage [V]"]
+
+    termination_conditions.append(
+        pybamm.step.CustomTermination("Upper voltage cut-off [V]", upper_voltage_cutoff)
+    )
+
+    # Build experiment with custom terminations
+    drive_cycle_step = pybamm.step.power(
+        drive_data,
+        duration=time_s[-1],
+        termination=termination_conditions,
+    )
     experiment = pybamm.Experiment([drive_cycle_step], period=period)
 
     # Create model
@@ -312,9 +362,7 @@ def run_drive_cycle(cell_design: dict, simulation_config: dict) -> dict:
     """Run a drive cycle simulation with comprehensive analysis."""
 
     # Build PyBaMM parameters and run capacity calibration
-    default_params, model_options = _build_pybamm_params(
-        cell_design, simulation_config
-    )
+    default_params, model_options = _build_pybamm_params(cell_design, simulation_config)
 
     # Run simulation
     sim_result = _run_pybamm_drive_cycle(
@@ -357,9 +405,7 @@ def run_drive_cycle(cell_design: dict, simulation_config: dict) -> dict:
             "voltage_V": sim_result["voltage_V"],
             "current_A": sim_result["current_A"],
             "temperature_K": sim_result["temperature_K"],
-            "temperature_C": [
-                float(t - 273.15) for t in sim_result["temperature_K"]
-            ],
+            "temperature_C": [float(t - 273.15) for t in sim_result["temperature_K"]],
             "capacity_Ah": sim_result["capacity_Ah"],
             "energy_Wh": sim_result["energy_Wh"],
             "power_W": sim_result["power_W"],
@@ -381,15 +427,19 @@ energy_firming = componentInputs.get("Energy Firming Duty Cycle Parser", {})
 freq_reg = componentInputs.get("Frequency Regulation Duty Cycle Parser", {})
 
 # Pack parameters
-max_power_kW = componentInputs.get("Pack Max Power (kW)", 1000)
-cells_parallel = componentInputs.get("Cells in Parallel", 100)
-max_duration_min = componentInputs.get("Max Duration (minutes)", 60)
+pack_max_energy_kWh = componentInputs.get("Pack Max Energy (kWh)")
+pack_voltage_V = componentInputs.get("Pack Nominal Voltage (V)")
+max_duration_min = componentInputs.get("Max Duration (minutes)")
 
 # Simulation parameters
-ambient_temp_K = componentInputs.get("Ambient Temperature (K)", 298.15)
-initial_soc = componentInputs.get("Initial SOC", 0.5)
-heat_transfer_coef = componentInputs.get("Heat Transfer Coefficient", 15)
-cooling_area_m2 = componentInputs.get("Cooling Surface Area (m2)", 0.05)
+ambient_temp_K = componentInputs.get("Ambient Temperature (K)")
+initial_soc = componentInputs.get("Initial SOC")
+heat_transfer_coef = componentInputs.get("Heat Transfer Coefficient (W/m2.K)")
+cooling_area_m2 = componentInputs.get("Cooling Surface Area (m2)")
+
+# Custom termination thresholds (optional)
+anode_potential_threshold_V = componentInputs.get("Anode Potential Threshold (V)")
+temperature_threshold_K = componentInputs.get("Temperature Threshold (K)")
 
 # Build duty cycles dictionary
 cycles = {
@@ -414,141 +464,142 @@ else:
         # Build cell_design dict from input component data
         cell_design = {
             "nominal_capacity": {"value": d.get("kpis.nominal_capacity.value")},
-                "nominal_energy": {"value": d.get("kpis.nominal_energy.value")},
-                "upper_voltage_cutoff": {
-                    "value": d.get("cell_design.upper_voltage_cutoff.value")
+            "nominal_energy": {"value": d.get("kpis.nominal_energy.value")},
+            "upper_voltage_cutoff": {
+                "value": d.get("cell_design.upper_voltage_cutoff.value")
+            },
+            "lower_voltage_cutoff": {
+                "value": d.get("cell_design.lower_voltage_cutoff.value")
+            },
+            "cell_volume": {"value": d.get("kpis.cell_volume.value")},
+            "positive_electrode": {
+                "count": {"value": d.get("cell_design.positive_electrode.count.value")},
+                "height": {
+                    "value": d.get("cell_design.positive_electrode.height.value")
                 },
-                "lower_voltage_cutoff": {
-                    "value": d.get("cell_design.lower_voltage_cutoff.value")
-                },
-                "cell_volume": {"value": d.get("kpis.cell_volume.value")},
-                "positive_electrode": {
-                    "count": {
-                        "value": d.get("cell_design.positive_electrode.count.value")
-                    },
-                    "height": {
-                        "value": d.get("cell_design.positive_electrode.height.value")
-                    },
-                    "width": {
-                        "value": d.get("cell_design.positive_electrode.width.value")
-                    },
-                    "coating": {
-                        "thickness": {
-                            "value": d.get(
-                                "cell_design.positive_electrode.coating.thickness.value"
-                            )
-                        },
-                        "porosity": {
-                            "value": d.get(
-                                "cell_design.positive_electrode.coating.porosity.value"
-                            )
-                        },
-                        "density": {
-                            "value": d.get(
-                                "cell_design.positive_electrode.coating.density.value"
-                            )
-                        },
-                        "active_material_volume_fraction": {
-                            "value": d.get(
-                                "cell_design.positive_electrode.coating.active_material_volume_fraction.value"
-                            )
-                        },
-                        "formulation": {
-                            "primary_active_material": {
-                                "name": d.get(
-                                    "cell_design.positive_electrode.coating.formulation.primary_active_material.name"
-                                )
-                            }
-                        },
-                    },
-                    "foil": {
-                        "thickness": {
-                            "value": d.get(
-                                "cell_design.positive_electrode.foil.thickness.value"
-                            )
-                        },
-                        "material": {
-                            "density": {
-                                "value": d.get(
-                                    "cell_design.positive_electrode.foil.material.density.value"
-                                )
-                            },
-                            "electrical_conductivity": {
-                                "value": d.get(
-                                    "cell_design.positive_electrode.foil.material.electrical_conductivity.value"
-                                )
-                            },
-                        },
-                    },
-                },
-                "negative_electrode": {
-                    "height": {
-                        "value": d.get("cell_design.negative_electrode.height.value")
-                    },
-                    "width": {
-                        "value": d.get("cell_design.negative_electrode.width.value")
-                    },
-                    "coating": {
-                        "thickness": {
-                            "value": d.get(
-                                "cell_design.negative_electrode.coating.thickness.value"
-                            )
-                        },
-                        "porosity": {
-                            "value": d.get(
-                                "cell_design.negative_electrode.coating.porosity.value"
-                            )
-                        },
-                        "density": {
-                            "value": d.get(
-                                "cell_design.negative_electrode.coating.density.value"
-                            )
-                        },
-                        "active_material_volume_fraction": {
-                            "value": d.get(
-                                "cell_design.negative_electrode.coating.active_material_volume_fraction.value"
-                            )
-                        },
-                    },
-                    "foil": {
-                        "thickness": {
-                            "value": d.get(
-                                "cell_design.negative_electrode.foil.thickness.value"
-                            )
-                        },
-                        "material": {
-                            "density": {
-                                "value": d.get(
-                                    "cell_design.negative_electrode.foil.material.density.value"
-                                )
-                            },
-                            "electrical_conductivity": {
-                                "value": d.get(
-                                    "cell_design.negative_electrode.foil.material.electrical_conductivity.value"
-                                )
-                            },
-                        },
-                    },
-                },
-                "separator": {
+                "width": {"value": d.get("cell_design.positive_electrode.width.value")},
+                "coating": {
                     "thickness": {
-                        "value": d.get("cell_design.separator.thickness.value")
+                        "value": d.get(
+                            "cell_design.positive_electrode.coating.thickness.value"
+                        )
                     },
                     "porosity": {
-                        "value": d.get("cell_design.separator.porosity.value")
+                        "value": d.get(
+                            "cell_design.positive_electrode.coating.porosity.value"
+                        )
                     },
-                    "material": {
-                        "density": {
-                            "value": d.get(
-                                "cell_design.separator.material.density.value"
+                    "density": {
+                        "value": d.get(
+                            "cell_design.positive_electrode.coating.density.value"
+                        )
+                    },
+                    "active_material_volume_fraction": {
+                        "value": d.get(
+                            "cell_design.positive_electrode.coating.active_material_volume_fraction.value"
+                        )
+                    },
+                    "formulation": {
+                        "primary_active_material": {
+                            "name": d.get(
+                                "cell_design.positive_electrode.coating.formulation.primary_active_material.name"
                             )
                         }
                     },
                 },
-                "jelly_roll": {
-                    "count": {"value": d.get("cell_design.jelly_roll.count.value")}
+                "foil": {
+                    "thickness": {
+                        "value": d.get(
+                            "cell_design.positive_electrode.foil.thickness.value"
+                        )
+                    },
+                    "material": {
+                        "density": {
+                            "value": d.get(
+                                "cell_design.positive_electrode.foil.material.density.value"
+                            )
+                        },
+                        "electrical_conductivity": {
+                            "value": d.get(
+                                "cell_design.positive_electrode.foil.material.electrical_conductivity.value"
+                            )
+                        },
+                    },
                 },
+            },
+            "negative_electrode": {
+                "height": {
+                    "value": d.get("cell_design.negative_electrode.height.value")
+                },
+                "width": {"value": d.get("cell_design.negative_electrode.width.value")},
+                "coating": {
+                    "thickness": {
+                        "value": d.get(
+                            "cell_design.negative_electrode.coating.thickness.value"
+                        )
+                    },
+                    "porosity": {
+                        "value": d.get(
+                            "cell_design.negative_electrode.coating.porosity.value"
+                        )
+                    },
+                    "density": {
+                        "value": d.get(
+                            "cell_design.negative_electrode.coating.density.value"
+                        )
+                    },
+                    "active_material_volume_fraction": {
+                        "value": d.get(
+                            "cell_design.negative_electrode.coating.active_material_volume_fraction.value"
+                        )
+                    },
+                },
+                "foil": {
+                    "thickness": {
+                        "value": d.get(
+                            "cell_design.negative_electrode.foil.thickness.value"
+                        )
+                    },
+                    "material": {
+                        "density": {
+                            "value": d.get(
+                                "cell_design.negative_electrode.foil.material.density.value"
+                            )
+                        },
+                        "electrical_conductivity": {
+                            "value": d.get(
+                                "cell_design.negative_electrode.foil.material.electrical_conductivity.value"
+                            )
+                        },
+                    },
+                },
+            },
+            "separator": {
+                "thickness": {"value": d.get("cell_design.separator.thickness.value")},
+                "porosity": {"value": d.get("cell_design.separator.porosity.value")},
+                "material": {
+                    "density": {
+                        "value": d.get("cell_design.separator.material.density.value")
+                    }
+                },
+            },
+            "jelly_roll": {
+                "count": {"value": d.get("cell_design.jelly_roll.count.value")}
+            },
         }
+
+        # Calculate pack configuration from cell properties
+        cell_nominal_voltage = d.get("kpis.nominal_voltage.value")
+        cell_nominal_energy_Wh = d.get("kpis.nominal_energy.value")
+
+        # Cells in series = pack voltage / cell voltage
+        cells_series = int(round(pack_voltage_V / cell_nominal_voltage))
+        # Cells in parallel = pack energy / (cell energy * cells in series)
+        cells_parallel = int(
+            round(
+                (pack_max_energy_kWh * 1000) / (cell_nominal_energy_Wh * cells_series)
+            )
+        )
 
         design_results = {}
 
@@ -569,7 +620,10 @@ else:
             time_s = time_min * 60
 
             # Convert per-unit power to cell power (W)
-            pack_power_W = power_pu * max_power_kW * 1000
+            # Pack rated power = Pack energy / 1 hour (1C rate as reference)
+            # pack_rated_power_W = pack_max_energy_kWh * 1000
+            pack_rated_power_W = componentInputs["Rated Power Demand (kW)"] * 1000
+            pack_power_W = power_pu * pack_rated_power_W
             cell_power_W = pack_power_W / cells_parallel
 
             # Build simulation config
@@ -587,6 +641,8 @@ else:
                 "total_heat_transfer_coefficient": heat_transfer_coef,
                 "cooling_surface_area": cooling_area_m2,
                 "period": "10 second",
+                "anode_potential_threshold_V": anode_potential_threshold_V,
+                "temperature_threshold_K": temperature_threshold_K,
                 "drive_cycle": {
                     "time_s": time_s.tolist(),
                     "power_W": cell_power_W.tolist(),
@@ -598,12 +654,21 @@ else:
             sim_result = run_drive_cycle(cell_design, simulation_config)
             design_results[cycle_name] = sim_result
 
-        simulation_results[design_id] = design_results
+        simulation_results[design_id] = {
+            "pack_config": {
+                "cells_in_series": cells_series,
+                "cells_in_parallel": cells_parallel,
+                "total_cells": cells_series * cells_parallel,
+            },
+            "cycles": design_results,
+        }
 
     result = {
         "status": "simulations_complete",
         "num_designs": len(simulation_results),
         "num_cycles": len([c for c in cycles.values() if c]),
+        "pack_max_energy_kWh": pack_max_energy_kWh,
+        "pack_voltage_V": pack_voltage_V,
         "simulation_results": simulation_results,
     }
 
