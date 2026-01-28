@@ -9,6 +9,7 @@ import pybamm
 import numpy as np
 import re
 
+
 def run_spmet(
     cell_design: dict,
     simulation_config: dict | None = None,
@@ -338,7 +339,9 @@ def run_spmet(
     experiment_labels = simulation_config.get("experiment_labels")
 
     if not experiments:
-        raise ValueError("No experiments provided in simulation_config['experiments'] or 'drive_cycle'")
+        raise ValueError(
+            "No experiments provided in simulation_config['experiments'] or 'drive_cycle'"
+        )
 
     # Pad labels if needed
     while len(experiment_labels) < len(experiments):
@@ -352,7 +355,7 @@ def run_spmet(
     period = simulation_config.get("period")
 
     # Define solver and points outside loop
-    var_pts = {"x_n": 10, "x_s": 10, "x_p": 10, "r_n": 10, "r_p": 10}
+    var_pts = {"x_n": 20, "x_s": 20, "x_p": 20, "r_n": 20, "r_p": 20}
     solver = pybamm.IDAKLUSolver(
         atol=1e-4,
         rtol=1e-4,
@@ -668,9 +671,11 @@ def _run_drive_cycle(
 
     except pybamm.SolverError as e:
         print(f"  Failed: {str(e)[:100]}")
-        return [{
-            "experiment_label": label,
-            "success": False,
-            "error": str(e),
-            "config": simulation_config,
-        }]
+        return [
+            {
+                "experiment_label": label,
+                "success": False,
+                "error": str(e),
+                "config": simulation_config,
+            }
+        ]

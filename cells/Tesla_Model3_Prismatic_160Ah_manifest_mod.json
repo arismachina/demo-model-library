@@ -175,10 +175,6 @@
           "value": 0.521,
           "unit": "1"
         },
-        "count": {
-          "value": 2.0,
-          "unit": "1"
-        },
         "bruggeman_coefficient": {
           "value": 1.5,
           "unit": "1"
@@ -338,8 +334,8 @@
           "value": 0.633,
           "unit": "1"
         },
-        "count": {
-          "value": 2.0,
+        "bruggeman_coefficient": {
+          "value": 1.5,
           "unit": "1"
         }
       },

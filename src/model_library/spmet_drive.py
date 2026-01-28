@@ -12,8 +12,8 @@ import numpy as np
 # Known drive cycle distances (km)
 DRIVE_CYCLE_DISTANCES = {
     # Automotive cycles
-    "Auto WLTP": 23.266,        # WLTP Class 3 full cycle
-    "Auto US06": 12.8,          # US06 aggressive driving cycle
+    "Auto WLTP": 23.266,  # WLTP Class 3 full cycle
+    "Auto US06": 12.8,  # US06 aggressive driving cycle
     "Track Nurburgring": 20.8,  # Nurburgring Nordschleife
 }
 
@@ -164,12 +164,8 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
     charge_step = (
         f"Charge at 0.1C until {cell_design['upper_voltage_cutoff']['value']} V"
     )
-    hold_step = (
-        f"Hold at {cell_design['upper_voltage_cutoff']['value']} V for 2 hours or until C/50"
-    )
-    discharge_step = (
-        f"Discharge at 0.1C for 15 hours or until {cell_design['lower_voltage_cutoff']['value']} V"
-    )
+    hold_step = f"Hold at {cell_design['upper_voltage_cutoff']['value']} V for 2 hours or until C/50"
+    discharge_step = f"Discharge at 0.1C for 15 hours or until {cell_design['lower_voltage_cutoff']['value']} V"
 
     capacity_match_experiment = pybamm.Experiment(
         [
@@ -281,8 +277,10 @@ def _run_pybamm_drive_cycle(
     termination_conditions = []
 
     if anode_threshold is not None:
+
         def anode_potential_cutoff(variables):
             return variables["Anode potential [V]"] - anode_threshold
+
         termination_conditions.append(
             pybamm.step.CustomTermination(
                 "Anode potential cut-off [V]", anode_potential_cutoff
@@ -290,26 +288,34 @@ def _run_pybamm_drive_cycle(
         )
 
     if temp_threshold is not None:
+
         def temperature_cutoff(variables):
             return temp_threshold - variables["Volume-averaged cell temperature [K]"]
+
         termination_conditions.append(
-            pybamm.step.CustomTermination(
-                "Temperature cut-off [K]", temperature_cutoff
-            )
+            pybamm.step.CustomTermination("Temperature cut-off [K]", temperature_cutoff)
         )
 
     if lower_voltage is not None:
+
         def voltage_lower_cutoff(variables):
             return variables["Terminal voltage [V]"] - lower_voltage
+
         termination_conditions.append(
-            pybamm.step.CustomTermination("Lower voltage cut-off [V]", voltage_lower_cutoff)
+            pybamm.step.CustomTermination(
+                "Lower voltage cut-off [V]", voltage_lower_cutoff
+            )
         )
 
     if upper_voltage is not None:
+
         def voltage_upper_cutoff(variables):
             return upper_voltage - variables["Terminal voltage [V]"]
+
         termination_conditions.append(
-            pybamm.step.CustomTermination("Upper voltage cut-off [V]", voltage_upper_cutoff)
+            pybamm.step.CustomTermination(
+                "Upper voltage cut-off [V]", voltage_upper_cutoff
+            )
         )
 
     # Determine drive cycle type: power_W or c_rate
@@ -385,27 +391,82 @@ def _run_pybamm_drive_cycle(
         print(f"  Running simulation (initial SOC: {initial_soc*100:.0f}%)...")
         solution = sim.solve(initial_soc=initial_soc, solver=solver)
 
-        soc = initial_soc - solution["Discharge capacity [A.h]"].entries / default_params["Nominal cell capacity [A.h]"]
         termination_reason = getattr(solution, "termination", "completed")
 
+        # Try to extract variables, handling missing ones gracefully
+        try:
+            discharge_capacity = solution["Discharge capacity [A.h]"].entries
+            soc = (
+                initial_soc
+                - discharge_capacity / default_params["Nominal cell capacity [A.h]"]
+            )
+        except (KeyError, AttributeError) as e:
+            print(f"  Warning: Could not compute SOC - {str(e)[:50]}")
+            discharge_capacity = None
+            soc = None
+
+        # Build result dict with available data
         result = {
-            "time_s": solution["Time [s]"].entries,
-            "voltage_V": solution["Terminal voltage [V]"].entries,
-            "current_A": solution["Current [A]"].entries,
-            "temperature_K": solution["Volume-averaged cell temperature [K]"].entries,
-            "capacity_Ah": solution["Discharge capacity [A.h]"].entries,
-            "energy_Wh": solution["Discharge energy [W.h]"].entries,
-            "power_W": solution["Terminal power [W]"].entries,
-            "soc": soc,
-            "anode_potential_V": solution["Anode potential [V]"].entries,
             "experiment_label": label,
             "termination_reason": termination_reason,
             "success": True,
         }
 
-        print(f"  Completed: {len(result['time_s'])} data points")
+        # Add variables that are available
+        try:
+            result["time_s"] = solution["Time [s]"].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["voltage_V"] = solution["Terminal voltage [V]"].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["current_A"] = solution["Current [A]"].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["temperature_K"] = solution[
+                "Volume-averaged cell temperature [K]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
+
+        if discharge_capacity is not None:
+            result["capacity_Ah"] = discharge_capacity
+
+        try:
+            result["energy_Wh"] = solution["Discharge energy [W.h]"].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["power_W"] = solution["Terminal power [W]"].entries
+        except (KeyError, AttributeError):
+            pass
+
+        if soc is not None:
+            result["soc"] = soc
+
+        try:
+            result["anode_potential_V"] = solution["Anode potential [V]"].entries
+        except (KeyError, AttributeError):
+            pass
+
+        n_points = len(result.get("time_s", []))
+        print(f"  Completed: {n_points} data points")
         if termination_reason != "completed" and termination_reason != "final time":
             print(f"  Termination: {termination_reason}")
+
+        # Check if we got enough data to be useful
+        if n_points == 0 or "voltage_V" not in result:
+            result["success"] = False
+            result["error"] = "Simulation produced insufficient data"
+            print("  Warning: Insufficient simulation data")
+
         return result
 
     except pybamm.SolverError as e:
@@ -414,6 +475,13 @@ def _run_pybamm_drive_cycle(
             "experiment_label": label,
             "success": False,
             "error": str(e),
+        }
+    except Exception as e:
+        print(f"  Unexpected error: {str(e)[:100]}")
+        return {
+            "experiment_label": label,
+            "success": False,
+            "error": f"Unexpected error: {str(e)}",
         }
 
 
@@ -491,7 +559,7 @@ def estimate_speed_from_power(
             else:
                 # Simplified: P = drag_coef * v³
                 if drag_coef > 0:
-                    speeds[i] = (P / drag_coef) ** (1/3)
+                    speeds[i] = (P / drag_coef) ** (1 / 3)
                 else:
                     speeds[i] = 0
 
@@ -500,7 +568,9 @@ def estimate_speed_from_power(
     metadata = {
         "avg_speed_m_s": float(np.mean(valid_speeds)) if len(valid_speeds) > 0 else 0,
         "max_speed_m_s": float(np.max(speeds)),
-        "avg_speed_kmh": float(np.mean(valid_speeds) * 3.6) if len(valid_speeds) > 0 else 0,
+        "avg_speed_kmh": (
+            float(np.mean(valid_speeds) * 3.6) if len(valid_speeds) > 0 else 0
+        ),
         "max_speed_kmh": float(np.max(speeds) * 3.6),
         "vehicle_type": vehicle_type,
     }
@@ -551,9 +621,6 @@ def run_drive_cycle(
                 - air_density_kg_m3: Air density (default: 1.225)
                 - rolling_resistance: Rolling resistance coeff (ground vehicles)
                 - lift_to_drag: L/D ratio (aircraft, optional)
-            - pack_config: (optional) Dict to convert pack power to cell power:
-                - cells_in_series: Number of cells in series
-                - cells_in_parallel: Number of cells in parallel
 
     Returns:
         Dictionary containing:
@@ -575,34 +642,39 @@ def run_drive_cycle(
     if "c_rate" not in drive_cycle and "power_W" not in drive_cycle:
         raise ValueError("drive_cycle must contain either 'c_rate' or 'power_W'")
 
-    # Handle pack-to-cell power conversion
-    pack_config = simulation_config.get("pack_config")
-    pack_power_W = None
+    # Get cell parameters
+    cell_nominal_capacity = cell_design["nominal_capacity"]["value"]
+    cell_nominal_energy = cell_design.get("nominal_energy", {}).get("value")
+    cell_nominal_voltage = cell_design.get("nominal_voltage", {}).get("value")
 
-    if pack_config is not None and "power_W" in drive_cycle:
-        cells_series = pack_config.get("cells_in_series", 1)
-        cells_parallel = pack_config.get("cells_in_parallel", 1)
+    # Handle pack-to-cell power conversion
+    pack_energy_kWh = simulation_config.get("pack_max_energy_kWh", None)
+    pack_max_power_kW = simulation_config.get("pack_rated_peak_power_kW")
+    pack_nominal_voltage = simulation_config.get("pack_nominal_voltage")
+
+    print(simulation_config)
+    if pack_energy_kWh is not None and "power_W" in drive_cycle:
+        cells_series = pack_nominal_voltage / cell_nominal_voltage
+        cells_parallel = (
+            pack_energy_kWh * 1000 / (pack_nominal_voltage * cell_nominal_capacity)
+        )
         total_cells = cells_series * cells_parallel
 
         pack_power_W = np.array(drive_cycle["power_W"])
-        cell_power_W = pack_power_W / cells_parallel
+        cell_power_W = pack_power_W / total_cells
 
         drive_cycle = {**drive_cycle, "power_W": cell_power_W}
         simulation_config = {**simulation_config, "drive_cycle": drive_cycle}
 
-        print(f"\n  Pack config: {cells_series}S{cells_parallel}P ({total_cells} cells)")
-        print(f"  Pack power range: {pack_power_W.min():.1f} to {pack_power_W.max():.1f} W")
-        print(f"  Cell power range: {cell_power_W.min():.1f} to {cell_power_W.max():.1f} W")
-
-    # Get cell parameters
-    nominal_capacity = cell_design["nominal_capacity"]["value"]
-    nominal_energy = cell_design.get("nominal_energy", {}).get("value")
-    if nominal_energy is None:
-        avg_voltage = (
-            cell_design["upper_voltage_cutoff"]["value"]
-            + cell_design["lower_voltage_cutoff"]["value"]
-        ) / 2
-        nominal_energy = nominal_capacity * avg_voltage
+        print(
+            f"\n  Pack config: {cells_series}S{cells_parallel}P ({total_cells} cells)"
+        )
+        print(
+            f"  Pack power range: {pack_power_W.min():.1f} to {pack_power_W.max():.1f} W"
+        )
+        print(
+            f"  Cell power range: {cell_power_W.min():.1f} to {cell_power_W.max():.1f} W"
+        )
 
     # Build PyBaMM parameters and run capacity calibration
     default_params, model_options = _build_pybamm_params(cell_design, simulation_config)
@@ -668,13 +740,15 @@ def run_drive_cycle(
     discharge_mask = power_mid > 0
     regen_mask = power_mid < 0
 
-    energy_discharged = float(np.sum(power_mid[discharge_mask] * dt[discharge_mask]) / 3600)
+    energy_discharged = float(
+        np.sum(power_mid[discharge_mask] * dt[discharge_mask]) / 3600
+    )
     energy_regen = float(-np.sum(power_mid[regen_mask] * dt[regen_mask]) / 3600)
     energy_net = energy_discharged - energy_regen
 
     capacity_used = float(sim_capacity[-1] - sim_capacity[0])
     initial_soc = simulation_config.get("initial_soc", 0.8)
-    soc_change = capacity_used / nominal_capacity * 100
+    soc_change = capacity_used / cell_nominal_capacity * 100
 
     energy_analysis = {
         "energy_discharged_Wh": energy_discharged,
@@ -723,8 +797,8 @@ def run_drive_cycle(
     min_soc = simulation_config.get("min_soc", 0.10)
     max_soc = simulation_config.get("max_soc", 0.90)
 
-    available_capacity = nominal_capacity * (initial_soc - min_soc)
-    usable_capacity = nominal_capacity * (max_soc - min_soc)
+    available_capacity = cell_nominal_capacity * (initial_soc - min_soc)
+    usable_capacity = cell_nominal_capacity * (max_soc - min_soc)
 
     cycles_possible = available_capacity / capacity_used if capacity_used > 0 else 0
     full_charge_cycles = usable_capacity / capacity_used if capacity_used > 0 else 0
@@ -750,47 +824,55 @@ def run_drive_cycle(
         full_range_km = full_charge_cycles * cycle_distance_km
         avg_speed_kmh = cycle_distance_km / cycle_duration_s * 3600
 
-        range_analysis.update({
-            "avg_speed_kmh": avg_speed_kmh,
-            "energy_per_km_Wh": energy_net / cycle_distance_km,
-            "capacity_per_km_Ah": capacity_used / cycle_distance_km,
-            "range_km": range_km,
-            "range_miles": range_km * 0.621371,
-            "full_charge_range_km": full_range_km,
-            "full_charge_range_miles": full_range_km * 0.621371,
-        })
+        range_analysis.update(
+            {
+                "avg_speed_kmh": avg_speed_kmh,
+                "energy_per_km_Wh": energy_net / cycle_distance_km,
+                "capacity_per_km_Ah": capacity_used / cycle_distance_km,
+                "range_km": range_km,
+                "range_miles": range_km * 0.621371,
+                "full_charge_range_km": full_range_km,
+                "full_charge_range_miles": full_range_km * 0.621371,
+            }
+        )
 
     # Time-based metrics
     drive_time_s = cycles_possible * cycle_duration_s
     full_charge_time_s = full_charge_cycles * cycle_duration_s
 
     time_label = "flight" if is_aerial else "drive"
-    range_analysis.update({
-        f"{time_label}_time_min": drive_time_s / 60,
-        f"{time_label}_time_hr": drive_time_s / 3600,
-        f"full_charge_{time_label}_time_min": full_charge_time_s / 60,
-        f"full_charge_{time_label}_time_hr": full_charge_time_s / 3600,
-    })
+    range_analysis.update(
+        {
+            f"{time_label}_time_min": drive_time_s / 60,
+            f"{time_label}_time_hr": drive_time_s / 3600,
+            f"full_charge_{time_label}_time_min": full_charge_time_s / 60,
+            f"full_charge_{time_label}_time_hr": full_charge_time_s / 3600,
+        }
+    )
 
     # Add pack configuration if provided
-    if pack_config is not None:
-        cells_series = pack_config.get("cells_in_series", 1)
-        cells_parallel = pack_config.get("cells_in_parallel", 1)
+    if pack_energy_kWh is not None:
+        cells_series = int(np.ceil(pack_nominal_voltage / cell_nominal_voltage))
+        cell_nominal_energy = cell_design["nominal_energy"]["value"]
+        # Add pack configuration if provided    )   # fallback
+        cells_parallel = int(
+            np.ceil(
+                pack_energy_kWh * 1000 / (pack_nominal_voltage * cell_nominal_capacity)
+            )
+        )
         total_cells = cells_series * cells_parallel
 
         range_analysis["pack_config"] = {
             "cells_in_series": cells_series,
             "cells_in_parallel": cells_parallel,
             "total_cells": total_cells,
-            "pack_capacity_Ah": nominal_capacity * cells_parallel,
-            "pack_energy_Wh": nominal_energy * total_cells,
-            "pack_voltage_nominal_V": (
-                (cell_design["upper_voltage_cutoff"]["value"] +
-                 cell_design["lower_voltage_cutoff"]["value"]) / 2 * cells_series
-            ),
+            "pack_energy_kWh": pack_energy_kWh,
+            "pack_voltage_nominal_V": pack_nominal_voltage,
         }
 
-        range_analysis["pack_range_km"] = range_analysis.get("range_km", 0) * cells_parallel
+        range_analysis["pack_range_km"] = (
+            range_analysis.get("range_km", 0) * cells_parallel
+        )
         range_analysis["pack_full_charge_range_km"] = (
             range_analysis.get("full_charge_range_km", 0) * cells_parallel
         )
@@ -846,12 +928,22 @@ def print_drive_cycle_report(result: dict) -> None:
     print(f"\n{'─' * 70}")
     print("SIMULATION SUMMARY")
     print(f"{'─' * 70}")
-    print(f"  Duration:        {summary['duration_s']:.1f} s ({summary['duration_min']:.1f} min)")
+    print(
+        f"  Duration:        {summary['duration_s']:.1f} s ({summary['duration_min']:.1f} min)"
+    )
     print(f"  Data points:     {summary['data_points']}")
-    print(f"  Voltage:         {summary['voltage_min_V']:.3f} - {summary['voltage_max_V']:.3f} V")
-    print(f"  Current:         {summary['current_min_A']:.1f} - {summary['current_max_A']:.1f} A")
-    print(f"  Power:           {summary['power_min_W']:.1f} - {summary['power_max_W']:.1f} W")
-    print(f"  Temperature:     {summary['temperature_min_C']:.1f} - {summary['temperature_max_C']:.1f} °C")
+    print(
+        f"  Voltage:         {summary['voltage_min_V']:.3f} - {summary['voltage_max_V']:.3f} V"
+    )
+    print(
+        f"  Current:         {summary['current_min_A']:.1f} - {summary['current_max_A']:.1f} A"
+    )
+    print(
+        f"  Power:           {summary['power_min_W']:.1f} - {summary['power_max_W']:.1f} W"
+    )
+    print(
+        f"  Temperature:     {summary['temperature_min_C']:.1f} - {summary['temperature_max_C']:.1f} °C"
+    )
     print(f"  Temp rise:       {summary['temperature_rise_C']:.1f} °C")
 
     print(f"\n{'─' * 70}")
@@ -862,7 +954,7 @@ def print_drive_cycle_report(result: dict) -> None:
     print(f"  Net energy:          {energy['energy_net_Wh']:.2f} Wh")
     print(f"  Capacity used:       {energy['capacity_used_Ah']:.2f} Ah")
     print(f"  SOC change:          {energy['soc_change_pct']:.1f}%")
-    if energy['regeneration_ratio_pct'] > 0:
+    if energy["regeneration_ratio_pct"] > 0:
         print(f"  Regen ratio:         {energy['regeneration_ratio_pct']:.1f}%")
 
     print(f"\n{'─' * 70}")
@@ -871,28 +963,38 @@ def print_drive_cycle_report(result: dict) -> None:
     print(f"  Drive cycle:         {range_info['cycle_label']}")
     print(f"  Cycle duration:      {range_info['cycle_duration_s']:.0f} s")
 
-    if range_info.get('cycle_distance_km'):
+    if range_info.get("cycle_distance_km"):
         print(f"  Cycle distance:      {range_info['cycle_distance_km']:.2f} km")
         print(f"  Average speed:       {range_info.get('avg_speed_kmh', 0):.1f} km/h")
-        print(f"  Energy consumption:  {range_info.get('energy_per_km_Wh', 0):.2f} Wh/km")
+        print(
+            f"  Energy consumption:  {range_info.get('energy_per_km_Wh', 0):.2f} Wh/km"
+        )
 
     print(f"\n  Initial SOC:         {range_info['initial_soc']*100:.0f}%")
-    print(f"  SOC limits:          {range_info['min_soc']*100:.0f}% - {range_info['max_soc']*100:.0f}%")
+    print(
+        f"  SOC limits:          {range_info['min_soc']*100:.0f}% - {range_info['max_soc']*100:.0f}%"
+    )
     print(f"  Available capacity:  {range_info['available_capacity_Ah']:.1f} Ah")
     print(f"  Cycles possible:     {range_info['cycles_possible']:.2f}")
 
-    time_label = "Flight" if range_info['is_aerial'] else "Drive"
+    time_label = "Flight" if range_info["is_aerial"] else "Drive"
 
-    if range_info.get('range_km'):
-        print(f"\n  Estimated range:     {range_info['range_km']:.1f} km ({range_info['range_miles']:.1f} miles)")
+    if range_info.get("range_km"):
+        print(
+            f"\n  Estimated range:     {range_info['range_km']:.1f} km ({range_info['range_miles']:.1f} miles)"
+        )
 
-    time_key = "flight_time_min" if range_info['is_aerial'] else "drive_time_min"
+    time_key = "flight_time_min" if range_info["is_aerial"] else "drive_time_min"
     if time_key in range_info:
         print(f"  {time_label} time:        {range_info[time_key]:.1f} min")
 
-    print(f"\n  --- Full Charge ({range_info['max_soc']*100:.0f}% to {range_info['min_soc']*100:.0f}%) ---")
-    if range_info.get('full_charge_range_km'):
-        print(f"  Range:               {range_info['full_charge_range_km']:.1f} km ({range_info['full_charge_range_miles']:.1f} miles)")
+    print(
+        f"\n  --- Full Charge ({range_info['max_soc']*100:.0f}% to {range_info['min_soc']*100:.0f}%) ---"
+    )
+    if range_info.get("full_charge_range_km"):
+        print(
+            f"  Range:               {range_info['full_charge_range_km']:.1f} km ({range_info['full_charge_range_miles']:.1f} miles)"
+        )
 
     full_time_key = f"full_charge_{time_label.lower()}_time_min"
     if full_time_key in range_info:
@@ -904,12 +1006,13 @@ def print_drive_cycle_report(result: dict) -> None:
         print(f"\n{'─' * 70}")
         print("PACK CONFIGURATION")
         print(f"{'─' * 70}")
-        print(f"  Configuration:       {pack['cells_in_series']}S{pack['cells_in_parallel']}P ({pack['total_cells']} cells)")
-        print(f"  Pack capacity:       {pack['pack_capacity_Ah']:.1f} Ah")
-        print(f"  Pack energy:         {pack['pack_energy_Wh']:.1f} Wh ({pack['pack_energy_Wh']/1000:.2f} kWh)")
-        print(f"  Pack voltage (nom):  {pack['pack_voltage_nominal_V']:.1f} V")
-        if range_info.get('pack_full_charge_range_km'):
-            print(f"  Pack range:          {range_info['pack_full_charge_range_km']:.1f} km")
+        print(
+            f"  Configuration:       {pack['cells_in_series']}S{pack['cells_in_parallel']}P ({pack['total_cells']} cells)"
+        )
+        if range_info.get("pack_full_charge_range_km"):
+            print(
+                f"  Pack range:          {range_info['pack_full_charge_range_km']:.1f} km"
+            )
 
     # Vehicle physics
     if "vehicle_physics" in range_info:

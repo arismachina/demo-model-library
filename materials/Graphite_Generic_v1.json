@@ -85,30 +85,37 @@
   },
   "electrochemical_properties": {
     "theoretical_specific_capacity": {
+      "type": "constant",
       "value": 372.0,
       "unit": "mAh.g-1"
     },
     "specific_capacity": {
+      "type": "constant",
       "value": 365,
       "unit": "mAh.g-1"
     },
     "capacity_utilization": {
+      "type": "constant",
       "value": 0.98,
       "unit": "1"
     },
     "nominal_voltage": {
+      "type": "constant",
       "value": 0.1,
       "unit": "V"
     },
     "upper_voltage": {
+      "type": "constant",
       "value": 0.5,
       "unit": "V"
     },
     "lower_voltage": {
+      "type": "constant",
       "value": 0.05,
       "unit": "V"
     },
     "max_lithium_concentration": {
+      "type": "constant",
       "value": 31359,
       "unit": "mol.m-3"
     },
@@ -2058,18 +2065,63 @@
       }
     },
     "diffusion_coefficient": {
-      "type": "value",
+      "type": "constant",
       "value": 3e-15,
       "unit": "m2.s-1"
     },
-    "reaction_rate": {
-      "type": "value",
-      "value": 6.48e-07,
-      "unit": "m.s-1",
-      "description": "Exchange current density coefficient"
+    "exchange_current_density": {
+      "type": "function",
+      "description": "Exchange current density coefficient",
+      "value": "i0_ref * exp(E_r / R * (1 / 298.15 - 1 / T)) * c_e**0.5 * c_s_surf**0.5 * (c_s_max - c_s_surf) ** 0.5",
+      "arguments": {
+        "i0_ref": {
+          "description": "Reference exchange current density",
+          "unit": "A.m-2",
+          "value": 0.1
+        },
+        "E_r": {
+          "description": "Activation energy",
+          "unit": "J.mol-1",
+          "value": 40000.0
+        },
+        "R": {
+          "description": "Universal gas constant",
+          "unit": "J.mol-1.K-1",
+          "value": 8.314
+        },
+        "c_e": {
+          "description": "Electrolyte concentration",
+          "unit": "mol.L-1",
+          "valid_range": {
+            "min": 0.5,
+            "max": 2.0
+          }
+        },
+        "c_s_surf": {
+          "description": "Surface concentration in solid",
+          "unit": "mol.m-3",
+          "valid_range": {
+            "min": 0.0,
+            "max": 30000.0
+          }
+        },
+        "c_s_max": {
+          "description": "Maximum concentration in solid",
+          "unit": "mol.m-3",
+          "value": 30555.0
+        },
+        "T": {
+          "description": "Temperature",
+          "unit": "K",
+          "valid_range": {
+            "min": 263.15,
+            "max": 323.15
+          }
+        }
+      }
     },
     "double_layer_capacitance": {
-      "type": "value",
+      "type": "constant",
       "value": 0.2,
       "unit": "F.m-2",
       "description": "Double layer capacitance"

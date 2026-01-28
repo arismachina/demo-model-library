@@ -1,0 +1,608 @@
+{
+  "metadata": {
+    "name": "BYD Blade Prismatic 135Ah",
+    "description": "Cell design manifest for BYD Blade Prismatic 135Ah",
+    "created_at": "2025-11-18T11:21:44.168751",
+    "tags": [],
+    "is_public": true,
+    "is_draft": false,
+    "design_type": "design"
+  },
+  "cell_design": {
+    "form_factor": "Prismatic",
+    "cell_dimensions": {
+      "height": {
+        "value": 90.0,
+        "unit": "mm"
+      },
+      "width": {
+        "value": 965.0,
+        "unit": "mm"
+      },
+      "thickness": {
+        "value": 14.0,
+        "unit": "mm"
+      },
+      "volume_packing_ratio": {
+        "value": 0.9,
+        "unit": "1"
+      }
+    },
+    "casing": {
+      "name": "Aluminum",
+      "material": {
+        "type": "Aluminum",
+        "density": {
+          "value": 2.7,
+          "unit": "g.cm-3"
+        }
+      },
+      "thickness": {
+        "value": 0.2,
+        "unit": "mm"
+      }
+    },
+    "jelly_roll": {
+      "count": {
+        "value": 1.0,
+        "unit": "1"
+      },
+      "height": {
+        "value": 81.0,
+        "unit": "mm"
+      },
+      "width": {
+        "value": 868.5,
+        "unit": "mm"
+      },
+      "thickness": {
+        "value": 14.0,
+        "unit": "mm"
+      },
+      "volume": {
+        "value": 0.985,
+        "unit": "L"
+      }
+    },
+    "positive_electrode": {
+      "coating": {
+        "formulation": {
+          "name": "LFP_Generic_v1",
+          "primary_active_material": {
+            "name": "LFP_Generic_v1",
+            "material": {
+              "type": "LFP_Generic_v1",
+              "density": {
+                "value": 3.6,
+                "unit": "g.cm-3"
+              },
+              "electrical_conductivity": {
+                "value": 1000000.0,
+                "unit": "S.m-1"
+              },
+              "thermal_conductivity": {
+                "value": 1.0,
+                "unit": "W.m-1.K-1"
+              },
+              "specific_heat": {
+                "value": 1.0,
+                "unit": "J.g-1.K-1"
+              }
+            },
+            "specific_capacity": {
+              "value": 155.0,
+              "unit": "mAh.g-1"
+            },
+            "nominal_voltage": {
+              "value": 3.3,
+              "unit": "V"
+            }
+          },
+          "primary_binder": {
+            "name": "PVDF_Generic_v1",
+            "material": {
+              "type": "PVDF_Generic_v1",
+              "density": {
+                "value": 1.78,
+                "unit": "g.cm-3"
+              },
+              "electrical_conductivity": {
+                "value": 1000000.0,
+                "unit": "S.m-1"
+              },
+              "thermal_conductivity": {
+                "value": 1.0,
+                "unit": "W.m-1.K-1"
+              },
+              "specific_heat": {
+                "value": 1.0,
+                "unit": "J.g-1.K-1"
+              }
+            }
+          },
+          "primary_conductive_agent": {
+            "name": "CarbonBlack_Generic_v1",
+            "material": {
+              "type": "CarbonBlack_Generic_v1",
+              "density": {
+                "value": 1.9,
+                "unit": "g.cm-3"
+              },
+              "electrical_conductivity": {
+                "value": 1000000.0,
+                "unit": "S.m-1"
+              },
+              "thermal_conductivity": {
+                "value": 1.0,
+                "unit": "W.m-1.K-1"
+              },
+              "specific_heat": {
+                "value": 1.0,
+                "unit": "J.g-1.K-1"
+              }
+            }
+          },
+          "primary_active_material_mass_fraction": {
+            "value": 0.8,
+            "unit": "1"
+          },
+          "primary_binder_mass_fraction": {
+            "value": 0.1,
+            "unit": "1"
+          },
+          "primary_conductive_agent_mass_fraction": {
+            "value": 0.1,
+            "unit": "1"
+          }
+        },
+        "thickness": {
+          "value": 80.0,
+          "unit": "um"
+        },
+        "density": {
+          "value": 2.445,
+          "unit": "g.cm-3"
+        },
+        "mass_loading": {
+          "value": 19.56,
+          "unit": "mg.cm-2"
+        },
+        "porosity": {
+          "value": 0.191,
+          "unit": "1"
+        },
+        "active_material_volume_fraction": {
+          "value": 0.543,
+          "unit": "1"
+        },
+        "count": {
+          "value": 2,
+          "unit": "1"
+        }
+      },
+      "foil": {
+        "name": "Aluminum_Generic_v1",
+        "material": {
+          "type": "Aluminum_Generic_v1",
+          "density": {
+            "value": 2.7,
+            "unit": "g.cm-3"
+          },
+          "electrical_conductivity": {
+            "value": 37700000.0,
+            "unit": "S.m-1"
+          },
+          "thermal_conductivity": {
+            "value": 237.0,
+            "unit": "W.m-1.K-1"
+          },
+          "specific_heat": {
+            "value": 0.897,
+            "unit": "J.g-1.K-1"
+          }
+        },
+        "thickness": {
+          "value": 20.0,
+          "unit": "um"
+        }
+      },
+      "count": {
+        "value": 38.0,
+        "unit": "1"
+      },
+      "width": {
+        "value": 893.45,
+        "unit": "mm"
+      },
+      "height": {
+        "value": 82.4,
+        "unit": "mm"
+      },
+      "thickness": {
+        "value": 180.0,
+        "unit": "um"
+      }
+    },
+    "negative_electrode": {
+      "coating": {
+        "formulation": {
+          "name": "Graphite_Generic_v1",
+          "primary_active_material": {
+            "name": "Graphite_Generic_v1",
+            "material": {
+              "type": "Graphite_Generic_v1",
+              "density": {
+                "value": 2.26,
+                "unit": "g.cm-3"
+              },
+              "electrical_conductivity": {
+                "value": 1000000.0,
+                "unit": "S.m-1"
+              },
+              "thermal_conductivity": {
+                "value": 1.0,
+                "unit": "W.m-1.K-1"
+              },
+              "specific_heat": {
+                "value": 1.0,
+                "unit": "J.g-1.K-1"
+              }
+            },
+            "specific_capacity": {
+              "value": 365.0,
+              "unit": "mAh.g-1"
+            },
+            "nominal_voltage": {
+              "value": 0.1,
+              "unit": "V"
+            }
+          },
+          "primary_binder": {
+            "name": "CMC_Generic_v1",
+            "material": {
+              "type": "CMC_Generic_v1",
+              "density": {
+                "value": 1.6,
+                "unit": "g.cm-3"
+              },
+              "electrical_conductivity": {
+                "value": 1000000.0,
+                "unit": "S.m-1"
+              },
+              "thermal_conductivity": {
+                "value": 1.0,
+                "unit": "W.m-1.K-1"
+              },
+              "specific_heat": {
+                "value": 1.0,
+                "unit": "J.g-1.K-1"
+              }
+            }
+          },
+          "secondary_binder": {
+            "name": "SBR_Generic_v1",
+            "material": {
+              "type": "SBR_Generic_v1",
+              "density": {
+                "value": 0.94,
+                "unit": "g.cm-3"
+              },
+              "electrical_conductivity": {
+                "value": 1000000.0,
+                "unit": "S.m-1"
+              },
+              "thermal_conductivity": {
+                "value": 1.0,
+                "unit": "W.m-1.K-1"
+              },
+              "specific_heat": {
+                "value": 1.0,
+                "unit": "J.g-1.K-1"
+              }
+            }
+          },
+          "primary_active_material_mass_fraction": {
+            "value": 0.8,
+            "unit": "1"
+          },
+          "primary_binder_mass_fraction": {
+            "value": 0.1,
+            "unit": "1"
+          },
+          "secondary_binder_mass_fraction": {
+            "value": 0.1,
+            "unit": "1"
+          }
+        },
+        "thickness": {
+          "value": 65.0,
+          "unit": "um"
+        },
+        "density": {
+          "value": 1.508,
+          "unit": "g.cm-3"
+        },
+        "mass_loading": {
+          "value": 9.805,
+          "unit": "mg.cm-2"
+        },
+        "porosity": {
+          "value": 0.211,
+          "unit": "1"
+        },
+        "active_material_volume_fraction": {
+          "value": 0.534,
+          "unit": "1"
+        },
+        "count": {
+          "value": 2,
+          "unit": "1"
+        }
+      },
+      "foil": {
+        "name": "Copperfoil_Generic_v1",
+        "material": {
+          "type": "Copperfoil_Generic_v1",
+          "density": {
+            "value": 8.96,
+            "unit": "g.cm-3"
+          },
+          "electrical_conductivity": {
+            "value": 59600000.0,
+            "unit": "S.m-1"
+          },
+          "thermal_conductivity": {
+            "value": 401.0,
+            "unit": "W.m-1.K-1"
+          },
+          "specific_heat": {
+            "value": 1.0,
+            "unit": "J.g-1.K-1"
+          }
+        },
+        "thickness": {
+          "value": 10.0,
+          "unit": "um"
+        }
+      },
+      "count": {
+        "value": 39.0,
+        "unit": "1"
+      },
+      "width": {
+        "value": 913.479,
+        "unit": "mm"
+      },
+      "height": {
+        "value": 84.4,
+        "unit": "mm"
+      },
+      "thickness": {
+        "value": 140.0,
+        "unit": "um"
+      }
+    },
+    "separator": {
+      "name": "PE_Separator_Generic_v1",
+      "material": {
+        "type": "PE_Separator_Generic_v1",
+        "density": {
+          "value": 0.95,
+          "unit": "g.cm-3"
+        }
+      },
+      "areal_density": {
+        "value": 10.0,
+        "unit": "g.m-2"
+      },
+      "porosity": {
+        "value": 0.4,
+        "unit": "1"
+      },
+      "count": {
+        "value": 80.0,
+        "unit": "1"
+      },
+      "thickness": {
+        "value": 12.0,
+        "unit": "um"
+      },
+      "width": {
+        "value": 915.479,
+        "unit": "mm"
+      },
+      "height": {
+        "value": 86.4,
+        "unit": "mm"
+      }
+    },
+    "electrolyte": {
+      "name": "LiPF6(1M)-EC:DMC(50:50)_Generic_v1",
+      "material": {
+        "type": "LiPF6(1M)-EC:DMC(50:50)_Generic_v1"
+      },
+      "mass": {
+        "value": 271.414,
+        "unit": "g"
+      },
+      "concentration": {
+        "value": 1.0,
+        "unit": "mol.L-1"
+      }
+    },
+    "structural_components": [
+      {
+        "name": "Aluminum_Generic_v1",
+        "material": {
+          "type": "Aluminum_Generic_v1",
+          "density": {
+            "value": 2.7,
+            "unit": "g.cm-3"
+          },
+          "electrical_conductivity": {
+            "value": 37700000.0,
+            "unit": "S.m-1"
+          },
+          "thermal_conductivity": {
+            "value": 237.0,
+            "unit": "W.m-1.K-1"
+          },
+          "specific_heat": {
+            "value": 0.897,
+            "unit": "J.g-1.K-1"
+          }
+        },
+        "mass": {
+          "value": 2.43,
+          "unit": "g"
+        }
+      },
+      {
+        "name": "Copperfoil_Generic_v1",
+        "material": {
+          "type": "Copperfoil_Generic_v1",
+          "density": {
+            "value": 8.96,
+            "unit": "g.cm-3"
+          },
+          "electrical_conductivity": {
+            "value": 59600000.0,
+            "unit": "S.m-1"
+          },
+          "thermal_conductivity": {
+            "value": 401.0,
+            "unit": "W.m-1.K-1"
+          },
+          "specific_heat": {
+            "value": 1.0,
+            "unit": "J.g-1.K-1"
+          }
+        },
+        "mass": {
+          "value": 6.048,
+          "unit": "g"
+        }
+      },
+      {
+        "name": "Polypropylene_Generic_v1",
+        "material": {
+          "type": "Polypropylene_Generic_v1",
+          "density": {
+            "value": 0.9,
+            "unit": "g.cm-3"
+          },
+          "electrical_conductivity": {
+            "value": 0.0,
+            "unit": "S.m-1"
+          },
+          "thermal_conductivity": {
+            "value": 0.22,
+            "unit": "W.m-1.K-1"
+          },
+          "specific_heat": {
+            "value": 1.88,
+            "unit": "J.g-1.K-1"
+          }
+        },
+        "mass": {
+          "value": 3.526,
+          "unit": "g"
+        }
+      },
+      {
+        "name": "Aluminum_Generic_v1",
+        "material": {
+          "type": "Aluminum_Generic_v1",
+          "density": {
+            "value": 2.7,
+            "unit": "g.cm-3"
+          },
+          "electrical_conductivity": {
+            "value": 37700000.0,
+            "unit": "S.m-1"
+          },
+          "thermal_conductivity": {
+            "value": 237.0,
+            "unit": "W.m-1.K-1"
+          },
+          "specific_heat": {
+            "value": 0.897,
+            "unit": "J.g-1.K-1"
+          }
+        },
+        "mass": {
+          "value": 2.0,
+          "unit": "g"
+        }
+      },
+      {
+        "name": "Copperfoil_Generic_v1",
+        "material": {
+          "type": "Copperfoil_Generic_v1",
+          "density": {
+            "value": 8.96,
+            "unit": "g.cm-3"
+          },
+          "electrical_conductivity": {
+            "value": 59600000.0,
+            "unit": "S.m-1"
+          },
+          "thermal_conductivity": {
+            "value": 401.0,
+            "unit": "W.m-1.K-1"
+          },
+          "specific_heat": {
+            "value": 1.0,
+            "unit": "J.g-1.K-1"
+          }
+        },
+        "mass": {
+          "value": 2.0,
+          "unit": "g"
+        }
+      },
+      {
+        "name": "Aluminum_Generic_v1",
+        "material": {
+          "type": "Aluminum_Generic_v1",
+          "density": {
+            "value": 2.7,
+            "unit": "g.cm-3"
+          },
+          "electrical_conductivity": {
+            "value": 37700000.0,
+            "unit": "S.m-1"
+          },
+          "thermal_conductivity": {
+            "value": 237.0,
+            "unit": "W.m-1.K-1"
+          },
+          "specific_heat": {
+            "value": 0.897,
+            "unit": "J.g-1.K-1"
+          }
+        },
+        "mass": {
+          "value": 0.5,
+          "unit": "g"
+        }
+      }
+    ],
+    "upper_voltage_cutoff": {
+      "value": 3.65,
+      "unit": "V"
+    },
+    "lower_voltage_cutoff": {
+      "value": 2.5,
+      "unit": "V"
+    },
+    "electrode_overhang": {
+      "value": 1.0,
+      "unit": "mm"
+    },
+    "cell_cooling_surface_area": {
+      "value": 13896.0,
+      "unit": "mm2"
+    }
+  }
+}

@@ -611,20 +611,22 @@ else:
             time_min = np.array(cycle_data["time_minutes"])
             power_pu = np.array(cycle_data["power_per_unit"])
 
-            # Limit to max duration
-            mask = time_min <= max_duration_min
-            time_min = time_min[mask]
-            power_pu = power_pu[mask]
+            # Optionally limit to max duration (if specified and > 0)
+            if max_duration_min and max_duration_min > 0:
+                mask = time_min <= max_duration_min
+                time_min = time_min[mask]
+                power_pu = power_pu[mask]
 
             # Convert to seconds
             time_s = time_min * 60
 
             # Convert per-unit power to cell power (W)
-            # Pack rated power = Pack energy / 1 hour (1C rate as reference)
-            # pack_rated_power_W = pack_max_energy_kWh * 1000
+            # Pack rated power from input
             pack_rated_power_W = componentInputs["Rated Power Demand (kW)"] * 1000
             pack_power_W = power_pu * pack_rated_power_W
-            cell_power_W = pack_power_W / cells_parallel
+            # Cell power = Pack power / total_cells (series × parallel)
+            total_cells = cells_series * cells_parallel
+            cell_power_W = pack_power_W / total_cells
 
             # Build simulation config
             simulation_config = {

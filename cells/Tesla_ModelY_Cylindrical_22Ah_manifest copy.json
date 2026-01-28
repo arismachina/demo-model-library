@@ -35,10 +35,6 @@
       }
     },
     "jelly_roll": {
-      "count": {
-        "value": 1.0,
-        "unit": "1"
-      },
       "outer_diameter": {
         "value": 44.9,
         "unit": "mm"
@@ -164,15 +160,7 @@
           "unit": "1"
         },
         "active_material_volume_fraction": {
-          "value": 0.683,
-          "unit": "1"
-        },
-        "count": {
-          "value": 2.0,
-          "unit": "1"
-        },
-        "bruggeman_coefficient": {
-          "value": 1.5,
+          "value": 1.002108871,
           "unit": "1"
         }
       },
@@ -328,14 +316,6 @@
         },
         "active_material_volume_fraction": {
           "value": 0.617,
-          "unit": "1"
-        },
-        "count": {
-          "value": 2.0,
-          "unit": "1"
-        },
-        "bruggeman_coefficient": {
-          "value": 1.5,
           "unit": "1"
         }
       },

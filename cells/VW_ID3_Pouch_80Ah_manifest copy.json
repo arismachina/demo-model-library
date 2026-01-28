@@ -405,9 +405,9 @@
       }
     },
     "electrolyte": {
-      "name": "LiPF6_EC_DMC_1M_v1",
+      "name": "LiPF6(1M)-EC:DMC(50:50)_Generic_v1",
       "material": {
-        "type": "LiPF6_EC_DMC_1M_v1"
+        "type": "LiPF6(1M)-EC:DMC(50:50)_Generic_v1"
       },
       "mass": {
         "value": 161.0,
