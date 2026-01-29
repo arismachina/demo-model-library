@@ -39,7 +39,7 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
         "primary_active_material"
     ]["name"]
 
-    if cathode_material == "LFP":
+    if "LFP" in cathode_material.upper():
         default_params = pybamm.ParameterValues("Prada2013")
     else:
         default_params = pybamm.ParameterValues("ORegan2022")
@@ -116,19 +116,19 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
     thermal_params = {
         "Reference temperature [K]": 298.15,
         "Total heat transfer coefficient [W.m-2.K-1]": simulation_config[
-            "total_heat_transfer_coefficient"
+            "total_heat_transfer_coefficient_W_m2K"
         ],
-        "Cell cooling surface area [m2]": simulation_config["cooling_surface_area"],
+        "Cell cooling surface area [m2]": simulation_config["cooling_surface_area_m2"],
         "Cell volume [m3]": cell_design["cell_volume"]["value"] / 1000.0,
     }
 
     # Operating conditions
     operating_conditions = {
-        "Ambient temperature [K]": simulation_config["ambient_temperature"],
-        "Initial temperature [K]": simulation_config["initial_temperature"],
-        "Contact resistance [Ohm]": simulation_config["contact_resistance"],
-        "Upper voltage cut-off [V]": simulation_config["upper_voltage_cutoff"],
-        "Lower voltage cut-off [V]": simulation_config["lower_voltage_cutoff"],
+        "Ambient temperature [K]": simulation_config["ambient_temperature_K"],
+        "Initial temperature [K]": simulation_config["initial_temperature_K"],
+        "Contact resistance [Ohm]": simulation_config["contact_resistance_Ohm"],
+        "Upper voltage cut-off [V]": simulation_config["upper_voltage_cutoff_V"],
+        "Lower voltage cut-off [V]": simulation_config["lower_voltage_cutoff_V"],
     }
 
     # Combine all parameters
@@ -270,8 +270,8 @@ def _run_pybamm_drive_cycle(
     # Get custom termination thresholds from config
     anode_threshold = simulation_config.get("anode_potential_threshold_V")
     temp_threshold = simulation_config.get("temperature_threshold_K")
-    lower_voltage = simulation_config.get("lower_voltage_cutoff")
-    upper_voltage = simulation_config.get("upper_voltage_cutoff")
+    lower_voltage = simulation_config.get("lower_voltage_cutoff_V")
+    upper_voltage = simulation_config.get("upper_voltage_cutoff_V")
 
     # Build termination conditions list
     termination_conditions = []
@@ -594,14 +594,14 @@ def run_drive_cycle(
     Args:
         cell_design: Cell design parameters dictionary (from manifest)
         simulation_config: Simulation configuration containing:
-            - ambient_temperature: Ambient temperature [K]
-            - initial_temperature: Initial cell temperature [K]
+            - ambient_temperature_K: Ambient temperature [K]
+            - initial_temperature_K: Initial cell temperature [K]
             - initial_soc: Initial state of charge [0-1]
-            - upper_voltage_cutoff: Upper voltage limit [V]
-            - lower_voltage_cutoff: Lower voltage limit [V]
-            - contact_resistance: Contact resistance [Ohm]
-            - total_heat_transfer_coefficient: Heat transfer coeff [W/m2K]
-            - cooling_surface_area: Cooling surface area [m2]
+            - upper_voltage_cutoff_V: Upper voltage limit [V]
+            - lower_voltage_cutoff_V: Lower voltage limit [V]
+            - contact_resistance_Ohm: Contact resistance [Ohm]
+            - total_heat_transfer_coefficient_W_m2K: Heat transfer coeff [W/m2K]
+            - cooling_surface_area_m2: Cooling surface area [m2]
             - period: Sampling period string (default: "1 second")
             - drive_cycle: Dict with drive cycle data:
                 - time_s: Array of time points [s]
@@ -621,6 +621,9 @@ def run_drive_cycle(
                 - air_density_kg_m3: Air density (default: 1.225)
                 - rolling_resistance: Rolling resistance coeff (ground vehicles)
                 - lift_to_drag: L/D ratio (aircraft, optional)
+            - pack_max_energy_kWh: (optional)
+            - pack_nominal_voltage_V: (optional)
+            - pack_rated_peak_power_kW: (optional)
 
     Returns:
         Dictionary containing:
@@ -650,9 +653,8 @@ def run_drive_cycle(
     # Handle pack-to-cell power conversion
     pack_energy_kWh = simulation_config.get("pack_max_energy_kWh", None)
     pack_max_power_kW = simulation_config.get("pack_rated_peak_power_kW")
-    pack_nominal_voltage = simulation_config.get("pack_nominal_voltage")
+    pack_nominal_voltage = simulation_config.get("pack_nominal_voltage_V")
 
-    print(simulation_config)
     if pack_energy_kWh is not None and "power_W" in drive_cycle:
         cells_series = pack_nominal_voltage / cell_nominal_voltage
         cells_parallel = (
@@ -667,7 +669,7 @@ def run_drive_cycle(
         simulation_config = {**simulation_config, "drive_cycle": drive_cycle}
 
         print(
-            f"\n  Pack config: {cells_series}S{cells_parallel}P ({total_cells} cells)"
+            f"\n  Pack config: {cells_series:.0f}S{cells_parallel:.0f}P ({total_cells:.0f} cells)"
         )
         print(
             f"  Pack power range: {pack_power_W.min():.1f} to {pack_power_W.max():.1f} W"
@@ -765,16 +767,37 @@ def run_drive_cycle(
     cycle_duration_s = summary["duration_s"]
     label = drive_cycle.get("label", "drive_cycle")
 
-    # Check for vehicle_params to estimate distance from power
+    # Check for vehicle parameters to calculate speed from power
+    # Support both new individual params and legacy vehicle_params dict
     vehicle_params = simulation_config.get("vehicle_params")
+    has_vehicle_params = (
+        vehicle_params is not None or "vehicle_weight_kg" in simulation_config
+    )
+
+    # Build vehicle_params dict from individual parameters if provided
+    if vehicle_params is None and "vehicle_weight_kg" in simulation_config:
+        vehicle_params = {
+            "weight_kg": simulation_config["vehicle_weight_kg"],
+            "drag_coefficient": simulation_config.get("vehicle_drag_coefficient", 0.3),
+            "frontal_area_m2": simulation_config.get("vehicle_frontal_area_m2", 2.0),
+            "rolling_resistance": simulation_config.get(
+                "vehicle_rolling_resistance", 0.01
+            ),
+            "drivetrain_efficiency": simulation_config.get(
+                "vehicle_drivetrain_efficiency", 0.85
+            ),
+        }
+
     speed_timeseries = None
     speed_metadata = None
+    physics_distance_km = None
 
-    # Determine cycle distance
+    # Determine cycle distance from drive_cycle data
     cycle_distance_km = drive_cycle.get("distance_km")
     is_aerial = label.startswith("Aero") if cycle_distance_km is None else False
 
-    if cycle_distance_km is None and vehicle_params is not None:
+    # Always calculate speed from vehicle physics when vehicle_params provided
+    if has_vehicle_params and vehicle_params is not None:
         power_for_vehicle = pack_power_W if pack_power_W is not None else sim_power
         vehicle_type = "aircraft" if is_aerial else "ground"
         speed_timeseries, speed_metadata = estimate_speed_from_power(
@@ -783,7 +806,11 @@ def run_drive_cycle(
 
         speed_mid = (speed_timeseries[:-1] + speed_timeseries[1:]) / 2
         distance_m = float(np.sum(speed_mid * dt))
-        cycle_distance_km = distance_m / 1000
+        physics_distance_km = distance_m / 1000
+
+        # Use physics-based distance if not provided in drive_cycle
+        if cycle_distance_km is None:
+            cycle_distance_km = physics_distance_km
 
     if cycle_distance_km is None:
         cycle_distance_km = DRIVE_CYCLE_DISTANCES.get(label)
@@ -853,8 +880,9 @@ def run_drive_cycle(
     # Add pack configuration if provided
     if pack_energy_kWh is not None:
         cells_series = int(np.ceil(pack_nominal_voltage / cell_nominal_voltage))
-        cell_nominal_energy = cell_design["nominal_energy"]["value"]
-        # Add pack configuration if provided    )   # fallback
+        cell_nominal_energy = cell_design.get("nominal_energy", {}).get("value")
+        if cell_nominal_energy is None:
+            cell_nominal_energy = cell_nominal_capacity * cell_nominal_voltage
         cells_parallel = int(
             np.ceil(
                 pack_energy_kWh * 1000 / (pack_nominal_voltage * cell_nominal_capacity)
@@ -880,15 +908,26 @@ def run_drive_cycle(
     # Add vehicle physics analysis if calculated
     if speed_metadata is not None:
         range_analysis["vehicle_physics"] = {
-            "estimated_from_power": True,
             "vehicle_type": speed_metadata["vehicle_type"],
             "avg_speed_kmh": speed_metadata["avg_speed_kmh"],
             "max_speed_kmh": speed_metadata["max_speed_kmh"],
+            "physics_distance_km": physics_distance_km,
             "weight_kg": vehicle_params.get("weight_kg"),
             "drag_coefficient": vehicle_params.get("drag_coefficient"),
             "frontal_area_m2": vehicle_params.get("frontal_area_m2"),
+            "rolling_resistance": vehicle_params.get("rolling_resistance", 0.01),
             "drivetrain_efficiency": vehicle_params.get("drivetrain_efficiency", 0.85),
         }
+        # Add comparison if actual distance was provided
+        if (
+            drive_cycle.get("distance_km") is not None
+            and physics_distance_km is not None
+        ):
+            actual_distance = drive_cycle["distance_km"]
+            range_analysis["vehicle_physics"]["actual_distance_km"] = actual_distance
+            range_analysis["vehicle_physics"]["distance_error_pct"] = (
+                (physics_distance_km - actual_distance) / actual_distance * 100
+            )
 
     # Add speed to timeseries if calculated
     if speed_timeseries is not None:
@@ -1024,8 +1063,14 @@ def print_drive_cycle_report(result: dict) -> None:
         print(f"  Weight:              {vp['weight_kg']:.1f} kg")
         print(f"  Drag coefficient:    {vp['drag_coefficient']}")
         print(f"  Frontal area:        {vp['frontal_area_m2']:.3f} m²")
+        print(f"  Rolling resistance:  {vp['rolling_resistance']}")
         print(f"  Drivetrain eff:      {vp['drivetrain_efficiency']*100:.0f}%")
         print(f"  Avg speed:           {vp['avg_speed_kmh']:.1f} km/h")
         print(f"  Max speed:           {vp['max_speed_kmh']:.1f} km/h")
+        if vp.get("physics_distance_km") is not None:
+            print(f"  Physics distance:    {vp['physics_distance_km']:.2f} km")
+        if vp.get("actual_distance_km") is not None:
+            print(f"  Actual distance:     {vp['actual_distance_km']:.2f} km")
+            print(f"  Distance error:      {vp['distance_error_pct']:+.1f}%")
 
     print("=" * 70)
