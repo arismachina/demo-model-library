@@ -43,7 +43,7 @@ max_soc = componentInputs.get("Max SOC")
 
 # Pack configuration
 pack_energy_kWh = componentInputs.get("Pack Max Energy (kWh)")
-pack_nominal_voltage_V = componentInputs.get("Pack Nominal Voltage (V)")
+pack_voltage_V = componentInputs.get("Pack Nominal Voltage (V)")
 pack_peak_power_kW = componentInputs.get("Pack Peak Power (kW)")
 
 # Vehicle parameters
@@ -54,27 +54,70 @@ vehicle_rolling_resistance = componentInputs.get("Vehicle Rolling Resistance")
 vehicle_drivetrain_eff = componentInputs.get("Vehicle Drivetrain Efficiency")
 
 
+def estimate_speed_from_power(power_W, vehicle_params, vehicle_type="ground"):
+    """Estimate vehicle speed from mechanical power using physics models."""
+    weight_kg = vehicle_params["weight_kg"]
+    Cd = vehicle_params.get("drag_coefficient", 0.3)
+    A = vehicle_params.get("frontal_area_m2", 2.0)
+    eta = vehicle_params.get("drivetrain_efficiency", 0.85)
+    rho = vehicle_params.get("air_density_kg_m3", 1.225)
+    Crr = vehicle_params.get("rolling_resistance", 0.01)
+
+    g = 9.81
+    W = weight_kg * g
+
+    speed_ms = np.zeros_like(power_W)
+
+    for i, P_mech in enumerate(power_W):
+        P_out = P_mech * eta if P_mech < 0 else P_mech / eta
+
+        if vehicle_type == "ground":
+            if abs(P_out) < 1e-3:
+                speed_ms[i] = 0.0
+                continue
+
+            if P_out < 0:
+                a = 0.5 * rho * Cd * A
+                b = Crr * W
+                c = 0
+                d = P_out
+
+                coeffs = [a, 0, b, d]
+                roots = np.roots(coeffs)
+                real_positive_roots = roots[(np.isreal(roots)) & (roots.real > 0)].real
+
+                if len(real_positive_roots) > 0:
+                    speed_ms[i] = float(real_positive_roots[0])
+
+    metadata = {
+        "vehicle_type": vehicle_type,
+        "avg_speed_kmh": (
+            float(np.mean(speed_ms[speed_ms > 0]) * 3.6)
+            if np.any(speed_ms > 0)
+            else 0.0
+        ),
+        "max_speed_kmh": float(np.max(speed_ms) * 3.6),
+    }
+
+    return speed_ms, metadata
+
+
 def run_drive_cycle(cell_design, simulation_config):
     """Run BEV drive cycle simulation."""
     drive_cycle = simulation_config["drive_cycle"]
-    pack_power_W = np.array(drive_cycle["power_W"])
-    pack_nominal_voltage = simulation_config["pack_nominal_voltage_V"]
-    pack_energy_kWh = simulation_config["pack_energy_kWh"]
-    pack_peak_power_kW = simulation_config["pack_peak_power_kW"]
+    pack_config = simulation_config.get("pack_config")
+
+    pack_power_W = None
+    if pack_config is not None and "power_W" in drive_cycle:
+        cells_parallel = pack_config.get("cells_in_parallel", 1)
+        pack_power_W = np.array(drive_cycle["power_W"])
+        cell_power_W = pack_power_W / cells_parallel
+        drive_cycle = {**drive_cycle, "power_W": cell_power_W}
+        simulation_config = {**simulation_config, "drive_cycle": drive_cycle}
+
     nominal_capacity = cell_design["nominal_capacity"]["value"]
-    nominal_energy = cell_design["nominal_energy"]["value"]
-    cell_nominal_voltage = cell_design["nominal_voltage"]["value"]
-    cells_series = pack_nominal_voltage / cell_nominal_voltage
-    cells_parallel = pack_energy_kWh * 1000 / (nominal_energy * cells_series)
-    cell_power_W = (
-        pack_power_W
-        / np.ceil(np.max(np.abs(pack_power_W)))
-        * pack_peak_power_kW
-        * 1000
-        / (cells_parallel * cells_series)
-    )
-    drive_cycle = {**drive_cycle, "power_W": cell_power_W}
-    simulation_config = {**simulation_config, "drive_cycle": drive_cycle}
+    nominal_energy = cell_design.get("nominal_energy", {}).get("value")
+    cell_nominal_voltage = cell_design.get("nominal_voltage", {}).get("value", 3.7)
 
     cathode_material = cell_design["positive_electrode"]["coating"]["formulation"][
         "primary_active_material"
@@ -227,43 +270,15 @@ def run_drive_cycle(cell_design, simulation_config):
     values = -np.array(drive_cycle["power_W"])
     drive_data = np.column_stack((time_s, values))
 
-    period = simulation_config["period"]
+    period = simulation_config.get("period", "1 second")
     lower_voltage = simulation_config["lower_voltage_cutoff"]
-
-    # Get custom termination thresholds from config
-    anode_threshold = simulation_config.get("anode_potential_threshold_V")
-    temp_threshold = simulation_config.get("jelly_roll_temperature_threshold_K")
-
-    # Define cutoff functions for custom terminations
-    def anode_potential_cutoff(variables):
-        return variables["Anode potential [V]"] - anode_threshold
-
-    def temperature_cutoff(variables):
-        return temp_threshold - variables["Volume-averaged cell temperature [K]"]
 
     def voltage_cutoff(variables):
         return variables["Terminal voltage [V]"] - lower_voltage
 
-    # Build termination conditions list
-    termination_conditions = []
-
-    if anode_threshold is not None:
-        termination_conditions.append(
-            pybamm.step.CustomTermination(
-                "Anode potential cut-off [V]", anode_potential_cutoff
-            )
-        )
-
-    if temp_threshold is not None:
-        termination_conditions.append(
-            pybamm.step.CustomTermination(
-                "Jelly roll temperature cut-off [K]", temperature_cutoff
-            )
-        )
-
-    termination_conditions.append(
+    termination_conditions = [
         pybamm.step.CustomTermination("Voltage cut-off [V]", voltage_cutoff)
-    )
+    ]
 
     drive_cycle_step = pybamm.step.power(
         drive_data, duration=time_s[-1], termination=termination_conditions
@@ -295,140 +310,93 @@ def run_drive_cycle(cell_design, simulation_config):
         model, parameter_values=default_params, experiment=experiment, var_pts=var_pts
     )
 
-    initial_soc_val = simulation_config["initial_soc"]
+    initial_soc_val = simulation_config.get("initial_soc", 0.95)
 
-    solution = sim.solve(initial_soc=initial_soc_val, solver=solver)
-    termination_reason = getattr(solution, "termination", "completed")
+    try:
+        solution = sim.solve(initial_soc=initial_soc_val, solver=solver)
+        termination_reason = getattr(solution, "termination", "completed")
 
-    result_data = {
-        "success": True,
-        "termination_reason": termination_reason,
-        "time_s": solution["Time [s]"].entries.tolist(),
-        "voltage_V": solution["Terminal voltage [V]"].entries.tolist(),
-        "current_A": solution["Current [A]"].entries.tolist(),
-        "temperature_K": solution[
-            "Volume-averaged cell temperature [K]"
-        ].entries.tolist(),
-        "capacity_Ah": solution["Discharge capacity [A.h]"].entries.tolist(),
-        "energy_Wh": solution["Discharge energy [W.h]"].entries.tolist(),
-        "power_W": solution["Power [W]"].entries.tolist(),
-    }
+        result_data = {
+            "success": True,
+            "termination_reason": termination_reason,
+            "time_s": solution["Time [s]"].entries.tolist(),
+            "voltage_V": solution["Terminal voltage [V]"].entries.tolist(),
+            "current_A": solution["Current [A]"].entries.tolist(),
+            "temperature_K": solution[
+                "Volume-averaged cell temperature [K]"
+            ].entries.tolist(),
+            "capacity_Ah": solution["Discharge capacity [A.h]"].entries.tolist(),
+            "energy_Wh": solution["Discharge energy [W.h]"].entries.tolist(),
+            "power_W": solution["Power [W]"].entries.tolist(),
+        }
 
-    sim_time = np.array(result_data["time_s"])
-    sim_voltage = np.array(result_data["voltage_V"])
-    sim_current = np.array(result_data["current_A"])
-    sim_power = np.array(result_data["power_W"])
-    sim_temp = np.array(result_data["temperature_K"])
-    sim_capacity_Ah = np.array(result_data["capacity_Ah"])
+        sim_time = np.array(result_data["time_s"])
+        sim_voltage = np.array(result_data["voltage_V"])
+        sim_current = np.array(result_data["current_A"])
+        sim_power = np.array(result_data["power_W"])
+        sim_temp = np.array(result_data["temperature_K"])
+        sim_capacity = np.array(result_data["capacity_Ah"])
 
-    summary = {
-        "duration_s": float(sim_time[-1] - sim_time[0]),
-        "voltage_min_V": float(sim_voltage.min()),
-        "voltage_max_V": float(sim_voltage.max()),
-        "temperature_min_C": float(sim_temp.min() - 273.15),
-        "temperature_max_C": float(sim_temp.max() - 273.15),
-        "temperature_rise_C": float(sim_temp.max() - sim_temp[0]),
-    }
+        summary = {
+            "duration_s": float(sim_time[-1] - sim_time[0]),
+            "voltage_min_V": float(sim_voltage.min()),
+            "voltage_max_V": float(sim_voltage.max()),
+            "temperature_min_C": float(sim_temp.min() - 273.15),
+            "temperature_max_C": float(sim_temp.max() - 273.15),
+            "temperature_rise_C": float(sim_temp.max() - sim_temp[0]),
+        }
 
-    dt = np.diff(sim_time)
-    power_mid = (sim_power[:-1] + sim_power[1:]) / 2
-    discharge_mask = power_mid > 0
-    regen_mask = power_mid < 0
+        dt = np.diff(sim_time)
+        power_mid = (sim_power[:-1] + sim_power[1:]) / 2
+        discharge_mask = power_mid > 0
+        regen_mask = power_mid < 0
 
-    energy_discharged = float(
-        np.sum(power_mid[discharge_mask] * dt[discharge_mask]) / 3600
-    )
-    energy_regen = float(np.sum(power_mid[regen_mask] * dt[regen_mask]) / 3600)
-    energy_net = energy_discharged + energy_regen
-    capacity_used = float(sim_capacity_Ah[-1] - sim_capacity_Ah[0])
+        energy_discharged = float(
+            np.sum(power_mid[discharge_mask] * dt[discharge_mask]) / 3600
+        )
+        energy_regen = float(np.sum(power_mid[regen_mask] * dt[regen_mask]) / 3600)
+        energy_net = energy_discharged + energy_regen
+        capacity_used = float(sim_capacity[-1] - sim_capacity[0])
 
-    energy_analysis = {
-        "energy_discharged_Wh": energy_discharged,
-        "energy_regenerated_Wh": abs(energy_regen),
-        "energy_net_Wh": energy_net,
-        "capacity_used_Ah": capacity_used,
-        "soc_change_pct": capacity_used / nominal_capacity * 100,
-    }
+        energy_analysis = {
+            "energy_discharged_Wh": energy_discharged,
+            "energy_regenerated_Wh": abs(energy_regen),
+            "energy_net_Wh": energy_net,
+            "capacity_used_Ah": capacity_used,
+            "soc_change_pct": capacity_used / nominal_capacity * 100,
+        }
 
-    # Physics-based speed and distance estimation
-    weight_kg = simulation_config["vehicle_weight_kg"]
-    Cd = simulation_config["vehicle_drag_coefficient"]
-    A = simulation_config["vehicle_frontal_area_m2"]
-    eta = simulation_config["vehicle_drivetrain_efficiency"]
-    Crr = simulation_config["vehicle_rolling_resistance"]
-    rho = 1.225  # Air density kg/m3
+        vehicle_params = simulation_config.get("vehicle_params")
+        cycle_distance_km = drive_cycle.get("distance_km")
 
-    g = 9.81
-    W = weight_kg * g
+        min_soc_val = simulation_config.get("min_soc", 0.10)
+        max_soc_val = simulation_config.get("max_soc", 0.95)
+        available_capacity = nominal_capacity * (initial_soc_val - min_soc_val)
+        cycles_possible = available_capacity / capacity_used if capacity_used > 0 else 0
 
-    # Use pack-level power and its matching time base for speed/distance calculation
-    drive_time_s = np.array(drive_cycle["time_s"])
-    power_for_vehicle = pack_power_W
-    speed_ms = np.zeros_like(power_for_vehicle)
+        range_analysis = {
+            "cycle_label": drive_cycle.get("label", "drive_cycle"),
+            "cycle_distance_km": cycle_distance_km,
+            "capacity_per_cycle_Ah": capacity_used,
+            "energy_per_cycle_Wh": energy_net,
+            "cycles_possible": cycles_possible,
+        }
 
-    drag_coef = 0.5 * rho * Cd * A
-    F_roll = Crr * W
+        if cycle_distance_km and cycle_distance_km > 0:
+            range_analysis["range_km"] = cycles_possible * cycle_distance_km
+            range_analysis["energy_per_km_Wh"] = energy_net / cycle_distance_km
 
-    for i, P_mech in enumerate(power_for_vehicle):
-        P_out = abs(P_mech) * eta
+        return {
+            "success": True,
+            "termination_reason": termination_reason,
+            "timeseries": result_data,
+            "summary": summary,
+            "energy_analysis": energy_analysis,
+            "range_analysis": range_analysis,
+        }
 
-        if P_out < 1e-3:
-            speed_ms[i] = 0.0
-            continue
-
-        # Ground vehicle: P = (drag_coef * v^2 + Crr * W) * v
-        # Cubic equation: drag_coef * v^3 + Crr * W * v - P = 0
-        coeffs = [drag_coef, 0, F_roll, -P_out]
-        roots = np.roots(coeffs)
-        real_positive_roots = [r.real for r in roots if np.isreal(r) and r.real > 0]
-
-        if len(real_positive_roots) > 0:
-            speed_ms[i] = float(real_positive_roots[0])
-
-    avg_speed_kmh = (
-        float(np.mean(speed_ms[speed_ms > 0]) * 3.6) if np.any(speed_ms > 0) else 0.0
-    )
-    max_speed_kmh = float(np.max(speed_ms) * 3.6)
-
-    # Calculate physics-based distance using drive cycle time base
-    drive_dt = np.diff(drive_time_s)
-    speed_mid = (speed_ms[:-1] + speed_ms[1:]) / 2
-    distance_m = float(np.sum(speed_mid * drive_dt))
-    physics_distance_km = distance_m / 1000
-
-    # Use provided cycle distance or fall back to physics calculation
-    cycle_distance_km = drive_cycle.get("distance_km")
-    if cycle_distance_km is None:
-        cycle_distance_km = physics_distance_km
-
-    min_soc_val = simulation_config["min_soc"]
-    max_soc_val = simulation_config["max_soc"]
-    available_capacity = nominal_capacity * (initial_soc_val - min_soc_val)
-    cycles_possible = available_capacity / capacity_used if capacity_used > 0 else 0
-
-    range_analysis = {
-        "cycle_label": drive_cycle["label"],
-        "cycle_distance_km": cycle_distance_km,
-        "physics_distance_km": physics_distance_km,
-        "avg_speed_kmh": avg_speed_kmh,
-        "max_speed_kmh": max_speed_kmh,
-        "capacity_per_cycle_Ah": capacity_used,
-        "energy_per_cycle_Wh": energy_net,
-        "cycles_possible": cycles_possible,
-    }
-
-    if cycle_distance_km and cycle_distance_km > 0:
-        range_analysis["range_km"] = cycles_possible * cycle_distance_km
-        range_analysis["energy_per_km_Wh"] = energy_net / cycle_distance_km
-
-    return {
-        "success": True,
-        "termination_reason": termination_reason,
-        "timeseries": result_data,
-        "summary": summary,
-        "energy_analysis": energy_analysis,
-        "range_analysis": range_analysis,
-    }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 # Process first design only for canvas performance
@@ -438,8 +406,8 @@ results_by_design = {}
 for design_id, d in list(cell_design_data.items()):
     cell_design = {
         "nominal_capacity": {"value": d["kpis.nominal_capacity.value"]},
-        "nominal_energy": {"value": d["kpis.nominal_energy.value"]},
-        "nominal_voltage": {"value": d["kpis.nominal_voltage.value"]},
+        "nominal_energy": {"value": d.get("kpis.nominal_energy.value", 0)},
+        "nominal_voltage": {"value": d.get("kpis.nominal_voltage.value", 3.7)},
         "upper_voltage_cutoff": {"value": d["cell_design.upper_voltage_cutoff.value"]},
         "lower_voltage_cutoff": {"value": d["cell_design.lower_voltage_cutoff.value"]},
         "cell_volume": {"value": d["kpis.cell_volume.value"]},
@@ -535,10 +503,18 @@ for design_id, d in list(cell_design_data.items()):
         "jelly_roll": {"count": {"value": d["cell_design.jelly_roll.count.value"]}},
     }
 
-    # Run simulation for each drive cycle
-    design_results = {}
+    cell_nom_voltage = d.get("kpis.nominal_voltage.value", 3.7)
+    cell_nom_capacity = d["kpis.nominal_capacity.value"]
 
-    for cycle_name, cycle_data in cycles.items():
+    cells_in_series = int(pack_voltage_V / cell_nom_voltage)
+    cells_in_parallel = int(
+        (pack_energy_kWh * 1000) / (cell_nom_capacity * pack_voltage_V)
+    )
+
+    # Run simulation for first available drive cycle only (schema limitation)
+    if cycles:
+        cycle_name, cycle_data = next(iter(cycles.items()))
+
         simulation_config = {
             "ambient_temperature": ambient_temp,
             "initial_temperature": initial_temp,
@@ -551,14 +527,17 @@ for design_id, d in list(cell_design_data.items()):
             "period": "1 second",
             "min_soc": min_soc,
             "max_soc": max_soc,
-            "pack_nominal_voltage_V": pack_nominal_voltage_V,
-            "pack_energy_kWh": pack_energy_kWh,
-            "pack_peak_power_kW": pack_peak_power_kW,
-            "vehicle_weight_kg": vehicle_weight_kg,
-            "vehicle_drag_coefficient": vehicle_drag_coeff,
-            "vehicle_frontal_area_m2": vehicle_frontal_area_m2,
-            "vehicle_rolling_resistance": vehicle_rolling_resistance,
-            "vehicle_drivetrain_efficiency": vehicle_drivetrain_eff,
+            "pack_config": {
+                "cells_in_series": cells_in_series,
+                "cells_in_parallel": cells_in_parallel,
+            },
+            "vehicle_params": {
+                "weight_kg": vehicle_weight_kg,
+                "drag_coefficient": vehicle_drag_coeff,
+                "frontal_area_m2": vehicle_frontal_area_m2,
+                "rolling_resistance": vehicle_rolling_resistance,
+                "drivetrain_efficiency": vehicle_drivetrain_eff,
+            },
             "drive_cycle": {
                 "time_s": cycle_data["data"]["time_s"],
                 "power_W": cycle_data["data"]["power_W"],
@@ -567,9 +546,13 @@ for design_id, d in list(cell_design_data.items()):
             },
         }
 
-        cycle_result = run_drive_cycle(cell_design, simulation_config)
-        design_results[cycle_name] = cycle_result
-
-    results_by_design[design_id] = design_results
+        design_result = run_drive_cycle(cell_design, simulation_config)
+        results_by_design[design_id] = design_result
+    else:
+        # No cycles available
+        results_by_design[design_id] = {
+            "success": False,
+            "error": "No drive cycle data provided",
+        }
 
 result = results_by_design

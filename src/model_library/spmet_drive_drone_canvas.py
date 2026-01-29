@@ -11,25 +11,19 @@ cell_design_data = componentInputs.get("Cell Design Data", {})
 drive_cycle_data = componentInputs.get("Drive Cycle Data", {})
 
 # Get simulation parameters
-ambient_temp = componentInputs.get("ambient_temperature", 298.15)
-initial_temp = componentInputs.get("initial_temperature", 298.15)
-initial_soc = componentInputs.get("initial_soc", 1.0)
-contact_resistance = componentInputs.get("contact_resistance", 0.0001)
-heat_transfer_coeff = componentInputs.get("total_heat_transfer_coefficient", 25)
-cooling_area = componentInputs.get("cooling_surface_area", 0.02)
-min_soc = componentInputs.get("min_soc", 0.2)
-max_soc = componentInputs.get("max_soc", 1.0)
+ambient_temp = componentInputs.get("Ambient Temperature [K]")
+initial_temp = componentInputs.get("Initial Temperature [K]")
+initial_soc = componentInputs.get("Initial SOC")
+contact_resistance = componentInputs.get("Contact Resistance [Ohm]")
+heat_transfer_coeff = componentInputs.get("Total Heat Transfer Coefficient [W.m-2.K-1]")
+cooling_area = componentInputs.get("Cooling Surface Area [m2]")
+min_soc = componentInputs.get("Minimum SOC")
+max_soc = componentInputs.get("Maximum SOC")
 
 # Pack configuration
-pack_energy_kWh = componentInputs.get("Pack Max Energy (kWh)")
-pack_nominal_voltage_V = componentInputs.get("Pack Nominal Voltage (V)")
-pack_peak_power_kW = componentInputs.get("Pack Peak Power (kW)")
-
-# Vehicle parameters
-drone_weight = componentInputs.get("Vehicle Weight (kg)")
-drag_coeff = componentInputs.get("Vehicle Drag Coefficient")
-frontal_area = componentInputs.get("Vehicle Frontal Area (m2)")
-drivetrain_eff = componentInputs.get("Vehicle Drivetrain Efficiency")
+pack_energy_kWh = componentInputs.get("Pack Energy [kWh]")
+pack_nominal_voltage_V = componentInputs.get("Pack Nominal Voltage [V]")
+pack_peak_power_kW = componentInputs.get("Pack Peak Power [kW]")
 
 
 # Run simulation function (embedded)
@@ -521,10 +515,6 @@ for design_id, d in cell_design_data.items():
         "pack_nominal_voltage_V": pack_nominal_voltage_V,
         "pack_energy_kWh": pack_energy_kWh,
         "pack_peak_power_kW": pack_peak_power_kW,
-        "vehicle_weight_kg": drone_weight,
-        "vehicle_drag_coefficient": drag_coeff,
-        "vehicle_frontal_area_m2": frontal_area,
-        "vehicle_drivetrain_efficiency": drivetrain_eff,
         "drive_cycle": {
             "time_s": drive_cycle_data["time_s"],
             "power_W": drive_cycle_data["power_W"],
