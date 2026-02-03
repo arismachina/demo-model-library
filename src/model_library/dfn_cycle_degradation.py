@@ -260,246 +260,11 @@ def calibrate_capacity(
     return param, False
 
 
-def run_large_cycle_degradation_single_solve(
-    cell_design: Dict, sim_config: Dict, cycles_per_step: int = 100
-) -> Dict[str, Any]:
-    """
-    EXPERIMENTAL: Run all cycles in a single solve() call (no reset between cycles).
-
-    This preserves degradation state perfectly across all cycles but may hit
-    throughput energy limits for very large simulations.
-
-    Uses manual time-stepping instead of Experiment-based cycling to avoid
-    state resets between cycles.
-    """
-    # Implementation would go here
-    pass
-
-
-def run_cycle_degradation_multistep(
-    cell_design: Dict, sim_config: Dict, cycles_per_step: int = 100
-) -> Dict[str, Any]:
-    """
-    Run DFN cycle degradation simulation using multi-step approach.
-
-    Breaks the total simulation into steps (default 100 cycles per step),
-    continuing degradation state from end of previous step to next step.
-    This avoids PyBaMM solver constraints on throughput energy.
-
-    Uses PyBaMM's model.set_initial_conditions_from(solution, inplace=False)
-    to properly carry forward the degradation state (SEI, LLI, LAM) between steps.
-
-    Args:
-        cell_design: Cell design dictionary from manifest JSON
-        sim_config: Simulation configuration dictionary (same as run_cycle_degradation)
-        cycles_per_step: Number of cycles per step (default: 100)
-
-    Returns:
-        Same as run_cycle_degradation: Dictionary with success, data, summary, etc.
-
-    Note:
-        Uses 100 cycles per step by default. For 1000 cycles = 10 steps.
-        Each step takes ~10-15 minutes, so 1000 cycles ≈ 100-150 minutes total.
-    """
-
-    print("=" * 80)
-    print("DFN CYCLE DEGRADATION SIMULATION (MULTI-STEP)")
-    print("=" * 80)
-
-    # Increase PyBaMM's throughput energy limit to handle large cells
-    print("\nAdjusting PyBaMM solver settings...")
-    pybamm.settings.max_y_value = 500000.0  # 500 kWh throughput limit per step
-    print(f"  ✓ Throughput energy limit: {pybamm.settings.max_y_value / 1000:.0f} kWh")
-
-    total_cycles = sim_config.get("num_cycles", 100)
-    num_steps = (total_cycles + cycles_per_step - 1) // cycles_per_step
-
-    print(f"\nSimulation strategy:")
-    print(f"  Total cycles: {total_cycles}")
-    print(f"  Cycles per step: {cycles_per_step}")
-    print(f"  Number of steps: {num_steps}")
-    print(f"  Est. time: {num_steps * 15} minutes (15 min per step)\n")
-
-    # Store all accumulated cycle data
-    all_cycle_data = []
-    all_times = []
-    all_voltages = []
-    all_currents = []
-    all_temperatures = []
-
-    current_soc = sim_config.get("initial_soc", 1.0)
-    current_step_num = 0
-    previous_solution = (
-        None  # Store full solution from previous step for state continuation
-    )
-
-    for step_num in range(num_steps):
-        current_step_num = step_num + 1
-
-        # Calculate cycles for this step
-        cycles_remaining = total_cycles - len(all_cycle_data)
-        cycles_this_step = min(cycles_per_step, cycles_remaining)
-
-        if cycles_this_step <= 0:
-            break
-
-        print(f"\n{'=' * 80}")
-        print(f"STEP {current_step_num}/{num_steps}: {cycles_this_step} cycles")
-        print(f"  (Total progress: {len(all_cycle_data)}/{total_cycles} cycles)")
-        print(f"{'=' * 80}")
-
-        # Create config for this step
-        step_config = sim_config.copy()
-        step_config["num_cycles"] = cycles_this_step
-        step_config["initial_soc"] = current_soc
-        # TEMP: Disable calibration skipping to debug
-        # step_config["skip_capacity_calibration"] = (
-        #     step_num > 0
-        # )  # Only calibrate on first step
-        step_config["skip_capacity_calibration"] = (
-            False  # Run calibration every step for now
-        )
-        step_config["_skip_multistep_delegation"] = True  # Prevent recursion
-
-        # For multi-step: mark that this is a continuation step (affects logging)
-        if step_num > 0:
-            step_config["_is_continuation_step"] = True
-            print(
-                f"  Running continuation step {current_step_num} (SoC at step start: {current_soc*100:.1f}%)"
-            )
-
-        # Run this step (direct call to avoid recursion)
-        print(f"\nRunning step {current_step_num}...")
-        result = run_cycle_degradation(cell_design, step_config)
-
-        if not result["success"]:
-            print(f"\n✗ Step {current_step_num} failed!")
-            print(f"  Error: {result.get('error', 'Unknown error')}")
-            print(f"  Completed {len(all_cycle_data)} cycles before failure")
-
-            if len(all_cycle_data) == 0:
-                return result  # No partial data to return
-
-            break  # Exit loop, return partial results
-
-        # Extract data from this step
-        step_cycle_data = result["data"]["cycles"]
-
-        if len(step_cycle_data) == 0:
-            print(f"  ⚠️  No cycle data extracted in step {current_step_num}")
-            break
-
-        # Adjust cycle numbers for accumulated total
-        step_start_cycle = len(all_cycle_data) + 1
-        for cycle in step_cycle_data:
-            cycle["cycle"] = step_start_cycle + (cycle["cycle"] - 1)
-            all_cycle_data.append(cycle)
-
-        # Accumulate other data (offset times for continuity)
-        time_offset = all_times[-1] if all_times else 0
-        step_times = result["data"]["time_s"]
-        if isinstance(step_times, np.ndarray):
-            step_times = step_times.flatten()
-        else:
-            step_times = np.array(step_times)
-
-        all_times.extend(step_times + time_offset)
-        all_voltages.extend(result["data"]["voltage_V"])
-        all_currents.extend(result["data"]["current_A"])
-        all_temperatures.extend(result["data"]["temperature_K"])
-
-        # Update current SoC for next step (use final SoH to estimate)
-        final_soh = step_cycle_data[-1]["soh_pct"]
-        current_soc = final_soh / 100.0
-
-        print(f"✓ Step {current_step_num} completed")
-        print(f"  Cycles in step: {len(step_cycle_data)}")
-        print(f"  Final SoH: {final_soh:.2f}%")
-        print(f"  Total cycles so far: {len(all_cycle_data)}")
-
-        # Check SoH threshold
-        soh_threshold = sim_config.get("soh_threshold", None)
-        if soh_threshold is not None and final_soh <= soh_threshold:
-            print(f"\n⚠️  SoH threshold reached at cycle {all_cycle_data[-1]['cycle']}")
-            break
-
-    # Build final summary
-    print(f"\n{'=' * 80}")
-    print("FINAL RESULTS (MULTI-STEP)")
-    print(f"{'=' * 80}")
-
-    if len(all_cycle_data) > 0:
-        initial_capacity = all_cycle_data[0]["capacity_Ah"]
-        final_capacity = all_cycle_data[-1]["capacity_Ah"]
-        capacity_fade = initial_capacity - final_capacity
-
-        summary = {
-            "num_cycles_completed": len(all_cycle_data),
-            "num_steps_completed": current_step_num,
-            "initial_capacity_Ah": initial_capacity,
-            "final_capacity_Ah": final_capacity,
-            "capacity_fade_Ah": capacity_fade,
-            "capacity_fade_pct": (capacity_fade / initial_capacity) * 100,
-            "initial_soh_pct": all_cycle_data[0]["soh_pct"],
-            "final_soh_pct": all_cycle_data[-1]["soh_pct"],
-            "final_lli_pct": all_cycle_data[-1]["lli_pct"],
-            "final_lam_neg_pct": all_cycle_data[-1]["lam_neg_pct"],
-            "final_lam_pos_pct": all_cycle_data[-1]["lam_pos_pct"],
-        }
-
-        # Determine stop reason
-        stop_reason = "num_cycles"
-        soh_threshold = sim_config.get("soh_threshold", None)
-        if soh_threshold is not None:
-            if all_cycle_data[-1]["soh_pct"] <= soh_threshold:
-                stop_reason = "soh_threshold"
-
-        print(f"Cycles completed: {len(all_cycle_data)}/{total_cycles}")
-        print(f"Steps completed: {current_step_num}/{num_steps}")
-        print(f"Stop reason: {stop_reason}")
-        print(f"Initial capacity: {summary['initial_capacity_Ah']:.2f} Ah")
-        print(f"Final capacity: {summary['final_capacity_Ah']:.2f} Ah")
-        print(
-            f"Capacity fade: {summary['capacity_fade_Ah']:.4f} Ah ({summary['capacity_fade_pct']:.2f}%)"
-        )
-        print(f"Final SoH: {summary['final_soh_pct']:.2f}%")
-        print(f"Final LLI: {summary['final_lli_pct']:.4f}%")
-
-        return {
-            "success": True,
-            "stop_reason": stop_reason,
-            "data": {
-                "cycles": all_cycle_data,
-                "time_s": np.array(all_times),
-                "voltage_V": all_voltages,
-                "current_A": all_currents,
-                "temperature_K": all_temperatures,
-            },
-            "summary": summary,
-            "config": sim_config,
-        }
-    else:
-        print("✗ No cycle data accumulated")
-        return {
-            "success": False,
-            "stop_reason": "error",
-            "error": "No cycle data accumulated across steps",
-            "summary": {},
-            "config": sim_config,
-        }
-
-    print("=" * 80)
-
-
 def run_cycle_degradation(cell_design: Dict, sim_config: Dict) -> Dict[str, Any]:
     """
     Run DFN cycle degradation simulation with charge/discharge cycling.
 
-    ✨ AUTO-DELEGATES TO MULTI-STEP FOR >150 CYCLES
-    - ≤150 cycles: Direct simulation (single-step)
-    - >150 cycles: Multi-step with 100 cycles per step
-
-    Cycling protocol:
+    Runs charge/discharge cycles until completion or stop condition reached:
     1. Start at 100% SoC (or initial_soc if specified)
     2. Discharge at discharge_c_rate to lower_voltage_cutoff_V
     3. Charge at charge_c_rate to upper_voltage_cutoff_V
@@ -519,8 +284,6 @@ def run_cycle_degradation(cell_design: Dict, sim_config: Dict) -> Dict[str, Any]
             - skip_capacity_calibration: Skip calibration, faster but less accurate (default: False)
             - solver_atol: Absolute tolerance (default: 1e-4)
             - solver_rtol: Relative tolerance (default: 1e-4)
-            - force_single_step: Force single-step for all cycles (default: False)
-            - _initial_y0: Initial state vector from previous step (multi-step mode only)
 
     Returns:
         Dictionary with keys:
@@ -532,45 +295,13 @@ def run_cycle_degradation(cell_design: Dict, sim_config: Dict) -> Dict[str, Any]
             - config: Copy of input configuration
 
     Note:
-        Multi-step is automatic for >150 cycles to avoid PyBaMM throughput energy
-        solver constraints (100 kWh limit). For large cells (>100 Ah) with high
-        C-rates, this ensures reliable convergence without manual intervention.
-
-        To force single-step (not recommended for >150 cycles):
-        sim_config["force_single_step"] = True
+        Uses PyBaMM throughput energy limit of 500 kWh to handle large cells (>100 Ah)
+        with multiple cycles reliably. This consolidated single-step approach now
+        supports 1000+ cycles without multi-step complications.
     """
 
-    # Check if we should use multi-step approach (auto-delegation)
+    # Extract simulation parameters
     num_cycles = sim_config.get("num_cycles", 100)
-    force_single_step = sim_config.get("force_single_step", False)
-
-    # NOTE: Multi-step cycling has been DISABLED due to PyBaMM limitations:
-    # - Experiment API doesn't properly populate solution.cycles with set_initial_conditions_from()
-    # - This breaks cycle data extraction in steps 2+
-    # - State continuation would help but breaks the Experiment solver's cycle tracking
-    #
-    # SOLUTION: Use single-step for everything with increased throughput limit (500 kWh)
-    # This now supports 1000+ cycles without multi-step complications.
-
-    if False and num_cycles > 150 and not force_single_step:
-        # Multi-step disabled - keeping code for future reference
-        print("\n" + "=" * 80)
-        print("AUTO-DELEGATING TO MULTI-STEP APPROACH")
-        print("=" * 80)
-        print(f"\nDetected {num_cycles} cycles (>150 cycle threshold)")
-        print("Automatically using multi-step to avoid PyBaMM solver constraints")
-        print(
-            f"  • Breaking into steps of 100 cycles each ({(num_cycles + 99) // 100} steps)"
-        )
-        print(f"  • Each step: ~60 kWh throughput (safe)")
-        print(
-            f"  • Single-step would be: ~{num_cycles * 60 / 100:.0f} kWh (potentially unsafe)"
-        )
-        print("=" * 80 + "\n")
-
-        return run_cycle_degradation_multistep(
-            cell_design, sim_config, cycles_per_step=100
-        )
 
     print("=" * 80)
     print("DFN CYCLE DEGRADATION SIMULATION")
@@ -580,7 +311,7 @@ def run_cycle_degradation(cell_design: Dict, sim_config: Dict) -> Dict[str, Any]
     # Default: 100,000 W.h (100 kWh) - too small for 160 Ah cells with multiple cycles
     # New: 500,000 W.h (500 kWh) - handles even extreme cases
     print("\nAdjusting PyBaMM solver settings...")
-    pybamm.settings.max_y_value = 500000.0  # 500 kWh throughput limit per step
+    pybamm.settings.max_y_value = 500000.0  # 500 kWh throughput limit
     print(f"  ✓ Throughput energy limit: {pybamm.settings.max_y_value / 1000:.0f} kWh")
 
     # Extract simulation parameters
