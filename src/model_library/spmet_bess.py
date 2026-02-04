@@ -159,11 +159,6 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
     # Capacity calibration
     target_capacity_Ah = cell_design["nominal_capacity"]["value"]
 
-    print("\n" + "=" * 80)
-    print("CAPACITY CALIBRATION")
-    print("=" * 80)
-    print(f"Target capacity: {target_capacity_Ah:.2f} Ah")
-
     charge_step = (
         f"Charge at 0.1C until {cell_design['upper_voltage_cutoff']['value']} V"
     )
@@ -185,9 +180,6 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
     MAX_ITERATIONS = 20
     TOLERANCE = 0.0001
 
-    print(f"Convergence tolerance: {TOLERANCE*100:.3f}%")
-    print("-" * 80)
-
     for iteration in range(MAX_ITERATIONS):
         sim_capacity = pybamm.Simulation(
             model_capacity,
@@ -200,11 +192,9 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
                 solver=pybamm.IDAKLUSolver(atol=1e-3, rtol=1e-3)
             )
         except pybamm.SolverError as e:
-            print(f"Capacity calibration failed: {e}")
             raise
 
         if not hasattr(sol_capacity, "cycles") or len(sol_capacity.cycles) < 4:
-            print(f"Warning: Insufficient cycles: {len(sol_capacity.cycles)}")
             break
 
         discharge_cycle = sol_capacity.cycles[2]
@@ -214,17 +204,8 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
         )
 
         scale_factor = discharge_capacity / target_capacity_Ah
-        error_percent = abs(1 - scale_factor) * 100
-
-        print(
-            f"Iteration {iteration+1:2d}: Capacity = {discharge_capacity:6.2f} Ah, "
-            f"Error = {error_percent:6.3f}%"
-        )
 
         if 1 - TOLERANCE < scale_factor < 1 + TOLERANCE:
-            print("-" * 80)
-            print(f"Converged after {iteration+1} iterations!")
-
             ocv_100 = float(sol_capacity.cycles[1]["Terminal voltage [V]"].entries[-1])
             ocv_0 = float(sol_capacity.cycles[3]["Terminal voltage [V]"].entries[-1])
 
@@ -245,13 +226,11 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
             },
             check_already_exists=False,
         )
-    else:
-        print(f"Warning: Did not converge after {MAX_ITERATIONS} iterations")
 
     return default_params, model_options
 
 
-def _run_pybamm_duty_cycle(
+def _run_pybamm_spmet_dutycycle(
     duty_cycle: dict,
     simulation_config: dict,
     default_params: pybamm.ParameterValues,
@@ -357,6 +336,11 @@ def _run_pybamm_duty_cycle(
             "Volume-averaged cell temperature [K]",
             "Terminal power [W]",
             "Anode potential [V]",
+            # Overpotential decomposition
+            "Sum of x-averaged negative electrode reaction overpotentials [V]",
+            "X-averaged negative electrode concentration overpotential [V]",
+            "Negative electrode SEI film overpotential [V]",
+            "Ohmic losses [V]",
         ],
     )
 
@@ -395,6 +379,33 @@ def _run_pybamm_duty_cycle(
             "success": True,
         }
 
+        # Extract overpotentials with graceful fallback
+        try:
+            result["reaction_overpotential_V"] = solution[
+                "Sum of x-averaged negative electrode reaction overpotentials [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["concentration_overpotential_V"] = solution[
+                "X-averaged negative electrode concentration overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["sei_overpotential_V"] = solution[
+                "Negative electrode SEI film overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["ohmic_overpotential_V"] = solution["Ohmic losses [V]"].entries
+        except (KeyError, AttributeError):
+            pass
+
         print(f"  Completed: {len(result['time_s'])} data points")
         if termination_reason != "completed" and termination_reason != "final time":
             print(f"  Termination: {termination_reason}")
@@ -409,7 +420,7 @@ def _run_pybamm_duty_cycle(
         }
 
 
-def run_duty_cycle(
+def run_spmet_dutycycle(
     cell_design: dict,
     simulation_config: dict,
 ) -> dict:
@@ -501,7 +512,9 @@ def run_duty_cycle(
 
     # Convert per-unit power to pack power, then to cell power
     time_s = np.array(duty_cycle["time_s"])
-    power_pu = np.array(duty_cycle["power_pu"])  # Per-unit power (normalized by abs max)
+    power_pu = np.array(
+        duty_cycle["power_pu"]
+    )  # Per-unit power (normalized by abs max)
     pack_power_W = power_pu * rated_power_kW * 1000  # Scale by rated peak power
     cell_power_W = pack_power_W / total_cells
 
@@ -543,7 +556,7 @@ def run_duty_cycle(
     default_params, model_options = _build_pybamm_params(cell_design, simulation_config)
 
     # Run simulation
-    sim_result = _run_pybamm_duty_cycle(
+    sim_result = _run_pybamm_spmet_dutycycle(
         duty_cycle=duty_cycle,
         simulation_config=simulation_config,
         default_params=default_params,
@@ -570,6 +583,22 @@ def run_duty_cycle(
         "energy_Wh": sim_result["energy_Wh"].tolist(),
         "anode_potential_V": sim_result["anode_potential_V"].tolist(),
     }
+
+    # Add overpotentials if available
+    if "reaction_overpotential_V" in sim_result:
+        timeseries["reaction_overpotential_V"] = sim_result[
+            "reaction_overpotential_V"
+        ].tolist()
+    if "concentration_overpotential_V" in sim_result:
+        timeseries["concentration_overpotential_V"] = sim_result[
+            "concentration_overpotential_V"
+        ].tolist()
+    if "sei_overpotential_V" in sim_result:
+        timeseries["sei_overpotential_V"] = sim_result["sei_overpotential_V"].tolist()
+    if "ohmic_overpotential_V" in sim_result:
+        timeseries["ohmic_overpotential_V"] = sim_result[
+            "ohmic_overpotential_V"
+        ].tolist()
 
     # Capture termination reason
     termination_reason = sim_result.get("termination_reason", "completed")
@@ -718,111 +747,3 @@ def run_duty_cycle(
         "termination_reason": termination_reason,
         "config": simulation_config,
     }
-
-
-def print_duty_cycle_report(result: dict) -> None:
-    """
-    Print a formatted report of BESS duty cycle simulation results.
-
-    Args:
-        result: Result dictionary from run_duty_cycle()
-    """
-    if not result.get("success"):
-        print(f"Simulation failed: {result.get('error', 'Unknown error')}")
-        return
-
-    summary = result["summary"]
-    energy = result["energy_analysis"]
-    cycle_info = result["cycle_analysis"]
-
-    print("=" * 70)
-    print("BESS DUTY CYCLE SIMULATION REPORT")
-    print("=" * 70)
-
-    print(f"\n{'─' * 70}")
-    print("SIMULATION SUMMARY")
-    print(f"{'─' * 70}")
-    print(
-        f"  Duration:        {summary['duration_s']:.1f} s ({summary['duration_min']:.1f} min)"
-    )
-    print(f"  Data points:     {summary['data_points']}")
-    print(
-        f"  Voltage:         {summary['voltage_min_V']:.3f} - {summary['voltage_max_V']:.3f} V"
-    )
-    print(
-        f"  Current:         {summary['current_min_A']:.1f} - {summary['current_max_A']:.1f} A"
-    )
-    print(
-        f"  Power:           {summary['power_min_W']:.1f} - {summary['power_max_W']:.1f} W"
-    )
-    print(
-        f"  Temperature:     {summary['temperature_min_C']:.1f} - {summary['temperature_max_C']:.1f} °C"
-    )
-    print(f"  Temp rise:       {summary['temperature_rise_C']:.1f} °C")
-    print(
-        f"  SOC range:       {summary['soc_min']*100:.1f}% - {summary['soc_max']*100:.1f}%"
-    )
-    print(f"  Final SOC:       {summary['final_soc']*100:.1f}%")
-
-    print(f"\n{'─' * 70}")
-    print("ENERGY ANALYSIS")
-    print(f"{'─' * 70}")
-    print(f"  Energy discharged:   {energy['energy_discharged_Wh']:.2f} Wh")
-    print(f"  Energy charged:      {energy['energy_charged_Wh']:.2f} Wh")
-    print(f"  Net energy:          {energy['energy_net_Wh']:.2f} Wh")
-    print(f"  Capacity discharged: {energy['capacity_discharged_Ah']:.3f} Ah")
-    print(f"  Capacity charged:    {energy['capacity_charged_Ah']:.3f} Ah")
-    print(f"  SOC change:          {energy['soc_change_pct']:+.1f}%")
-    if energy["round_trip_efficiency_pct"] > 0:
-        print(f"  Round-trip eff:      {energy['round_trip_efficiency_pct']:.1f}%")
-
-    print(f"\n{'─' * 70}")
-    print("CYCLE ANALYSIS")
-    print(f"{'─' * 70}")
-    print(f"  Duty cycle:          {cycle_info['cycle_label']}")
-    print(
-        f"  Cycle duration:      {cycle_info['cycle_duration_s']:.0f} s ({cycle_info['cycle_duration_min']:.1f} min)"
-    )
-    print(
-        f"  SOC limits:          {cycle_info['min_soc_limit']*100:.0f}% - {cycle_info['max_soc_limit']*100:.0f}%"
-    )
-    print(f"  Usable capacity:     {cycle_info['usable_capacity_Ah']:.1f} Ah")
-    print(f"  Usable energy:       {cycle_info['usable_energy_Wh']:.1f} Wh")
-    print(
-        f"  Throughput/cycle:    {cycle_info['throughput_Ah']:.3f} Ah / {cycle_info['throughput_Wh']:.2f} Wh"
-    )
-    print(f"  Cycles per day:      {cycle_info['cycles_per_day']:.1f}")
-    print(
-        f"  Daily throughput:    {cycle_info['daily_throughput_Ah']:.1f} Ah / {cycle_info['daily_throughput_Wh']:.1f} Wh"
-    )
-
-    # Pack configuration
-    if "pack_config" in cycle_info:
-        pack = cycle_info["pack_config"]
-        print(f"\n{'─' * 70}")
-        print("PACK CONFIGURATION")
-        print(f"{'─' * 70}")
-        print(
-            f"  Configuration:       {pack['cells_in_series']}S{pack['cells_in_parallel']}P ({pack['total_cells']} cells)"
-        )
-        print(f"  Pack capacity:       {pack['pack_capacity_Ah']:.1f} Ah")
-        print(
-            f"  Pack energy:         {pack['pack_energy_Wh']:.1f} Wh ({pack['pack_energy_Wh']/1000:.2f} kWh)"
-        )
-        print(f"  Pack voltage (nom):  {pack['pack_voltage_nominal_V']:.1f} V")
-        print(f"  Pack usable cap:     {pack['pack_usable_capacity_Ah']:.1f} Ah")
-        print(
-            f"  Pack usable energy:  {pack['pack_usable_energy_Wh']:.1f} Wh ({pack['pack_usable_energy_Wh']/1000:.2f} kWh)"
-        )
-        print(
-            f"  Pack throughput:     {pack['pack_throughput_Ah']:.1f} Ah / {pack['pack_throughput_Wh']:.1f} Wh"
-        )
-        print(f"  Daily throughput:    {pack['pack_daily_throughput_kWh']:.2f} kWh")
-
-    # Termination reason
-    termination = result.get("termination_reason", "completed")
-    if termination != "completed" and termination != "final time":
-        print(f"\n{'─' * 70}")
-        print(f"  TERMINATION: {termination}")
-
-    print("=" * 70)

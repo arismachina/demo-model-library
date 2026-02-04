@@ -14,98 +14,23 @@ import numpy as np
 from typing import Union, List
 
 
-def simulate_dcir(
+def _build_pybamm_params(
     cell_design: dict,
-    kpis: dict,
-    initial_soc: Union[float, List[float], np.ndarray] = 0.5,
-    temperature_K: Union[float, List[float], np.ndarray] = 298.15,
-    c_rate: Union[float, List[float], np.ndarray] = 1.0,
-    contact_resistance: float = 1e-5,
-) -> dict:
+    simulation_config: dict,
+) -> tuple[pybamm.ParameterValues, dict]:
     """
-    Simulate DCIR at specific time points (0.1s, 1s, 10s, 18s, 30s).
-
-    This is a standalone function that takes cell design and kpis dicts and returns
-    DCIR values at the specified time points. Supports both single-point and sweep
-    simulations when arrays are provided for SOC, temperature, or C-rate.
+    Build PyBaMM parameters from cell design manifest.
 
     Args:
         cell_design: Cell design parameters dictionary
-        kpis: KPIs dictionary containing nominal_capacity
-        initial_soc: Initial state of charge [0-1] or array of SOC values (default: 0.5)
-        temperature_K: Temperature [K] or array of temperatures (default: 298.15 = 25°C)
-        c_rate: Pulse amplitude as C-rate or array of C-rates (default: 1.0)
-        contact_resistance: Contact resistance [Ohm] (default: 1e-5)
+        simulation_config: Simulation configuration dictionary
 
     Returns:
-        For single values: Dictionary containing:
-            - success: Boolean indicating if simulation succeeded
-            - dcir_mOhm: Dict mapping time points (s) to DCIR values (mOhm)
-            - conditions: Dict with simulation conditions
-            - error: Error message if failed (optional)
-
-        For array inputs: Dictionary containing:
-            - success: Boolean indicating if all simulations succeeded
-            - surface_data: List of dicts, each with soc, temperature_K, temperature_C,
-                           c_rate, dcir_mOhm (dict of time points to values)
-            - sweep_params: Dict with soc_values, temperature_K_values, c_rate_values arrays
-            - num_simulations: Total number of simulations run
-            - error: Error message if failed (optional)
-
-    Example (single point):
-        >>> dcir_results = simulate_dcir(cell_design, kpis)
-        >>> print(dcir_results["dcir_mOhm"])
-        {0.1: 1.23, 1.0: 1.45, 10.0: 1.67, 18.0: 1.78, 30.0: 1.89}
-
-    Example (sweep):
-        >>> dcir_results = simulate_dcir(
-        ...     cell_design, kpis,
-        ...     initial_soc=[0.2, 0.5, 0.8],
-        ...     temperature_K=[273.15, 298.15, 318.15],
-        ...     c_rate=[0.1, 1.0, 2.0]
-        ... )
-        >>> print(dcir_results["num_simulations"])
-        27
+        Tuple of (parameter_values, model_options)
     """
-    if cell_design is None:
-        return {"success": False, "error": "cell_design is None"}
+    default_params = pybamm.ParameterValues({})
 
-    if kpis is None:
-        return {"success": False, "error": "kpis is None"}
-
-    nominal_capacity = kpis.get("nominal_capacity", {}).get("value")
-
-    if nominal_capacity is None:
-        return {
-            "success": False,
-            "error": "Nominal capacity not found in kpis",
-        }
-
-    # Convert inputs to arrays
-    soc_array = np.atleast_1d(initial_soc)
-    temp_array = np.atleast_1d(temperature_K)
-    crate_array = np.atleast_1d(c_rate)
-
-    # Check if this is a sweep (any input has more than one value)
-    is_sweep = len(soc_array) > 1 or len(temp_array) > 1 or len(crate_array) > 1
-
-    if is_sweep:
-        return _run_dcir_sweep(
-            cell_design=cell_design,
-            kpis=kpis,
-            soc_array=soc_array,
-            temp_array=temp_array,
-            crate_array=crate_array,
-            contact_resistance=contact_resistance,
-        )
-
-    # Single point simulation - continue with original logic
-    initial_soc = float(soc_array[0])
-    temperature_K = float(temp_array[0])
-    c_rate = float(crate_array[0])
-
-    # Build PyBaMM parameters from cell design
-    print("\nBuilding model parameters from cell design...")
+    print("\nBuilding model parameters from manifest...")
 
     if (
         cell_design["positive_electrode"]["coating"]["formulation"][
@@ -119,7 +44,7 @@ def simulate_dcir(
 
     # Cell parameters
     cell_params = {
-        "Nominal cell capacity [A.h]": nominal_capacity,
+        "Nominal cell capacity [A.h]": cell_design["nominal_capacity"]["value"],
     }
 
     # Positive electrode parameters
@@ -195,22 +120,20 @@ def simulate_dcir(
     # Thermal parameters
     thermal_params = {
         "Reference temperature [K]": 298.15,
-        "Total heat transfer coefficient [W.m-2.K-1]": 0.01,
-        "Cell cooling surface area [m2]": 0.1,
+        "Total heat transfer coefficient [W.m-2.K-1]": simulation_config[
+            "total_heat_transfer_coefficient"
+        ],
+        "Cell cooling surface area [m2]": simulation_config["cooling_surface_area"],
         "Cell volume [m3]": cell_design["cell_volume"]["value"] / 1000.0,
     }
 
-    # Get voltage cutoffs from cell design
-    upper_voltage = cell_design.get("upper_voltage_cutoff", {}).get("value", 4.2)
-    lower_voltage = cell_design.get("lower_voltage_cutoff", {}).get("value", 2.5)
-
     # Operating conditions
     operating_conditions = {
-        "Ambient temperature [K]": temperature_K,
-        "Initial temperature [K]": temperature_K,
-        "Contact resistance [Ohm]": contact_resistance,
-        "Upper voltage cut-off [V]": upper_voltage,
-        "Lower voltage cut-off [V]": lower_voltage,
+        "Ambient temperature [K]": simulation_config["ambient_temperature"],
+        "Initial temperature [K]": simulation_config["initial_temperature"],
+        "Contact resistance [Ohm]": simulation_config["contact_resistance"],
+        "Upper voltage cut-off [V]": simulation_config["upper_voltage_cutoff"],
+        "Lower voltage cut-off [V]": simulation_config["lower_voltage_cutoff"],
     }
 
     # Combine all parameters
@@ -235,16 +158,14 @@ def simulate_dcir(
         "contact resistance": "true",
     }
 
-    # Capacity calibration
-    target_capacity_Ah = nominal_capacity
-    print("\n" + "=" * 80)
-    print("CAPACITY CALIBRATION")
-    print("=" * 80)
-    print(f"Target capacity: {target_capacity_Ah:.2f} Ah")
+    # ========== CAPACITY CALIBRATION ==========
+    target_capacity_Ah = cell_design["nominal_capacity"]["value"]
 
-    charge_step = f"Charge at 0.1C until {upper_voltage} V"
-    hold_step = f"Hold at {upper_voltage} V for 2 hours or until C/50"
-    discharge_step = f"Discharge at 0.1C for 15 hours or until {lower_voltage} V"
+    charge_step = (
+        f"Charge at 0.1C until {cell_design['upper_voltage_cutoff']['value']} V"
+    )
+    hold_step = f"Hold at {cell_design['upper_voltage_cutoff']['value']} V for 2 hours or until C/50"
+    discharge_step = f"Discharge at 0.1C for 15 hours or until {cell_design['lower_voltage_cutoff']['value']} V"
 
     capacity_match_experiment = pybamm.Experiment(
         [
@@ -265,9 +186,6 @@ def simulate_dcir(
     MAX_ITERATIONS = 20
     TOLERANCE = 0.0001
 
-    print(f"Convergence tolerance: {TOLERANCE*100:.3f}%")
-    print("-" * 80)
-
     for iteration in range(MAX_ITERATIONS):
         sim_capacity = pybamm.Simulation(
             model_capacity,
@@ -280,10 +198,9 @@ def simulate_dcir(
                 solver=pybamm.IDAKLUSolver(atol=1e-3, rtol=1e-3)
             )
         except pybamm.SolverError as e:
-            return {"success": False, "error": f"Capacity calibration failed: {e}"}
+            raise
 
         if not hasattr(sol_capacity, "cycles") or len(sol_capacity.cycles) < 4:
-            print(f"Warning: Insufficient cycles: {len(sol_capacity.cycles)}")
             break
 
         discharge_cycle = sol_capacity.cycles[2]
@@ -293,16 +210,8 @@ def simulate_dcir(
         )
 
         scale_factor = discharge_capacity / target_capacity_Ah
-        error_percent = abs(1 - scale_factor) * 100
-
-        print(
-            f"Iteration {iteration+1:2d}: Capacity = {discharge_capacity:6.2f} Ah, Error = {error_percent:6.3f}%"
-        )
 
         if 1 - TOLERANCE < scale_factor < 1 + TOLERANCE:
-            print("-" * 80)
-            print(f"Converged after {iteration+1} iterations!")
-
             ocv_100 = float(sol_capacity.cycles[1]["Terminal voltage [V]"].entries[-1])
             ocv_0 = float(sol_capacity.cycles[3]["Terminal voltage [V]"].entries[-1])
 
@@ -323,8 +232,136 @@ def simulate_dcir(
             },
             check_already_exists=False,
         )
+
+    return default_params, model_options
+
+
+def run_spmet_dcir(
+    cell_design: dict,
+    kpis: dict,
+    initial_soc: Union[float, List[float], np.ndarray] = 0.5,
+    temperature_K: Union[float, List[float], np.ndarray] = 298.15,
+    c_rate: Union[float, List[float], np.ndarray] = 1.0,
+    contact_resistance: float = 1e-5,
+) -> dict:
+    """
+    Simulate DCIR at specific time points (0.1s, 1s, 10s, 18s, 30s).
+
+    This is a standalone function that takes cell design and kpis dicts and returns
+    DCIR values at the specified time points. Supports both single-point and sweep
+    simulations when arrays are provided for SOC, temperature, or C-rate.
+
+    Args:
+        cell_design: Cell design parameters dictionary
+        kpis: KPIs dictionary containing nominal_capacity
+        initial_soc: Initial state of charge [0-1] or array of SOC values (default: 0.5)
+        temperature_K: Temperature [K] or array of temperatures (default: 298.15 = 25°C)
+        c_rate: Pulse amplitude as C-rate or array of C-rates (default: 1.0)
+        contact_resistance: Contact resistance [Ohm] (default: 1e-5)
+
+    Returns:
+        For single values: Dictionary containing:
+            - success: Boolean indicating if simulation succeeded
+            - dcir_mOhm: Dict mapping time points (s) to DCIR values (mOhm)
+            - conditions: Dict with simulation conditions
+            - error: Error message if failed (optional)
+
+        For array inputs: Dictionary containing:
+            - success: Boolean indicating if all simulations succeeded
+            - surface_data: List of dicts, each with soc, temperature_K, temperature_C,
+                           c_rate, dcir_mOhm (dict of time points to values)
+            - sweep_params: Dict with soc_values, temperature_K_values, c_rate_values arrays
+            - num_simulations: Total number of simulations run
+            - error: Error message if failed (optional)
+
+    Example (single point):
+        >>> dcir_results = simulate_dcir(cell_design, kpis)
+        >>> print(dcir_results["dcir_mOhm"])
+        {0.1: 1.23, 1.0: 1.45, 10.0: 1.67, 18.0: 1.78, 30.0: 1.89}
+
+    Example (sweep):
+        >>> dcir_results = simulate_dcir(
+        ...     cell_design, kpis,
+        ...     initial_soc=[0.2, 0.5, 0.8],
+        ...     temperature_K=[273.15, 298.15, 318.15],
+        ...     c_rate=[0.1, 1.0, 2.0]
+        ... )
+        >>> print(dcir_results["num_simulations"])
+        27
+    """
+    if cell_design is None:
+        return {"success": False, "error": "cell_design is None"}
+
+    if kpis is None:
+        return {"success": False, "error": "kpis is None"}
+
+    nominal_capacity = kpis.get("nominal_capacity", {}).get("value")
+
+    if nominal_capacity is None:
+        return {
+            "success": False,
+            "error": "Nominal capacity not found in kpis",
+        }
+
+    # Convert inputs to arrays
+    soc_array = np.atleast_1d(initial_soc)
+    temp_array = np.atleast_1d(temperature_K)
+    crate_array = np.atleast_1d(c_rate)
+
+    # Check if this is a sweep (any input has more than one value)
+    is_sweep = len(soc_array) > 1 or len(temp_array) > 1 or len(crate_array) > 1
+
+    if is_sweep:
+        return _run_pybamm_spmet_dcir(
+            cell_design=cell_design,
+            kpis=kpis,
+            soc_array=soc_array,
+            temp_array=temp_array,
+            crate_array=crate_array,
+            contact_resistance=contact_resistance,
+        )
+
+    # Single point simulation - continue with original logic
+    initial_soc = float(soc_array[0])
+    temperature_K = float(temp_array[0])
+    c_rate = float(crate_array[0])
+
+    # Calculate cell volume from dimensions if not directly available
+    if "cell_volume" in cell_design:
+        cell_vol_m3 = cell_design["cell_volume"]["value"] / 1000.0
     else:
-        print(f"Warning: Did not converge after {MAX_ITERATIONS} iterations")
+        dims = cell_design.get("cell_dimensions", {})
+        h_mm = dims.get("height", {}).get("value", 82.0)
+        w_mm = dims.get("width", {}).get("value", 280.0)
+        t_mm = dims.get("thickness", {}).get("value", 63.0)
+        cell_vol_m3 = (h_mm * w_mm * t_mm) / 1e9
+
+    # Get voltage cutoffs from cell design
+    upper_voltage = cell_design.get("upper_voltage_cutoff", {}).get("value", 4.2)
+    lower_voltage = cell_design.get("lower_voltage_cutoff", {}).get("value", 2.5)
+
+    # Build simulation config
+    simulation_config = {
+        "ambient_temperature": temperature_K,
+        "initial_temperature": temperature_K,
+        "contact_resistance": contact_resistance,
+        "upper_voltage_cutoff": upper_voltage,
+        "lower_voltage_cutoff": lower_voltage,
+        "total_heat_transfer_coefficient": 0.01,
+        "cooling_surface_area": 0.1,
+    }
+
+    # Update cell_design with voltage cutoffs and volume if needed
+    cell_design_copy = cell_design.copy()
+    cell_design_copy["upper_voltage_cutoff"] = {"value": upper_voltage}
+    cell_design_copy["lower_voltage_cutoff"] = {"value": lower_voltage}
+    if "cell_volume" not in cell_design_copy:
+        cell_design_copy["cell_volume"] = {"value": cell_vol_m3 * 1000.0}
+
+    # Build parameters (includes calibration) using shared function
+    default_params, model_options = _build_pybamm_params(
+        cell_design_copy, simulation_config
+    )
 
     # Run DCIR pulse simulation
     print("\n" + "=" * 80)
@@ -363,6 +400,11 @@ def simulate_dcir(
             "Volume-averaged cell temperature [K]",
             "Power [W]",
             "Anode potential [V]",
+            # Overpotential decomposition
+            "Sum of x-averaged negative electrode reaction overpotentials [V]",
+            "X-averaged negative electrode concentration overpotential [V]",
+            "Negative electrode SEI film overpotential [V]",
+            "Ohmic losses [V]",
         ],
     )
 
@@ -385,12 +427,40 @@ def simulate_dcir(
         time_s = data_source["Time [s]"].entries
         voltage_V = data_source["Terminal voltage [V]"].entries
 
+        # Extract overpotential data with try/except for graceful fallback
+        try:
+            reaction_overpotential = data_source[
+                "Sum of x-averaged negative electrode reaction overpotentials [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            reaction_overpotential = np.zeros_like(time_s)
+
+        try:
+            concentration_overpotential = data_source[
+                "X-averaged negative electrode concentration overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            concentration_overpotential = np.zeros_like(time_s)
+
+        try:
+            sei_overpotential = data_source[
+                "Negative electrode SEI film overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            sei_overpotential = np.zeros_like(time_s)
+
+        try:
+            ohmic_overpotential = data_source["Ohmic losses [V]"].entries
+        except (KeyError, AttributeError):
+            ohmic_overpotential = np.zeros_like(time_s)
+
         # Calculate DCIR at requested time points
         v_rest = voltage_V[0]
         i_amplitude = nominal_capacity * c_rate
 
         requested_points = [0.1, 1.0, 10.0, 18.0, 30.0]
         dcir_mOhm = {}
+        overpotentials = {}
 
         print("\nDCIR Results:")
         print("-" * 40)
@@ -404,6 +474,15 @@ def simulate_dcir(
             dcir_ohm = (v_rest - v_pulse) / i_amplitude + contact_resistance
             dcir_mOhm[t_point] = float(dcir_ohm * 1000)
 
+            # Store overpotentials at this time point
+            overpotentials[t_point] = {
+                "reaction_overpotential_V": float(reaction_overpotential[t_idx]),
+                "concentration_overpotential_V": float(
+                    concentration_overpotential[t_idx]
+                ),
+                "sei_overpotential_V": float(sei_overpotential[t_idx]),
+                "ohmic_overpotential_V": float(ohmic_overpotential[t_idx]),
+            }
             print(f"  t={t_point:5.1f}s: DCIR = {dcir_mOhm[t_point]:.3f} mOhm")
 
         print("-" * 40)
@@ -411,6 +490,7 @@ def simulate_dcir(
         result = {
             "success": True,
             "dcir_mOhm": dcir_mOhm,
+            "overpotentials": overpotentials,
             "conditions": {
                 "initial_soc": initial_soc,
                 "temperature_K": temperature_K,
@@ -426,7 +506,7 @@ def simulate_dcir(
         return {"success": False, "error": f"DCIR simulation failed: {str(e)}"}
 
 
-def _run_dcir_sweep(
+def _run_pybamm_spmet_dcir(
     cell_design: dict,
     kpis: dict,
     soc_array: np.ndarray,
@@ -534,10 +614,9 @@ def _run_dcir_sweep(
     separator_params = {
         "Separator thickness [m]": separator["thickness"]["value"] / 1e6,
         "Separator porosity": separator["porosity"]["value"],
-        "Separator density [kg.m-3]": separator["material"]["physical_properties"][
-            "density"
-        ]["value"]
-        * 1000,
+        "Separator density [kg.m-3]": (
+            separator["material"]["density"]["value"] * 1000
+        ),
     }
 
     # Get voltage cutoffs from cell design
@@ -545,11 +624,22 @@ def _run_dcir_sweep(
     lower_voltage = cell_design.get("lower_voltage_cutoff", {}).get("value", 2.5)
 
     # Thermal parameters (will be updated per temperature)
+    # Calculate cell volume from dimensions if not directly available
+    if "cell_volume" in cell_design:
+        cell_vol_m3 = cell_design["cell_volume"]["value"] / 1000.0
+    else:
+        # Calculate from dimensions: height × width × thickness (in mm³ → m³)
+        dims = cell_design.get("cell_dimensions", {})
+        h_mm = dims.get("height", {}).get("value", 82.0)
+        w_mm = dims.get("width", {}).get("value", 280.0)
+        t_mm = dims.get("thickness", {}).get("value", 63.0)
+        cell_vol_m3 = (h_mm * w_mm * t_mm) / 1e9  # mm³ to m³
+
     thermal_params = {
         "Reference temperature [K]": 298.15,
         "Total heat transfer coefficient [W.m-2.K-1]": 0.01,
         "Cell cooling surface area [m2]": 0.1,
-        "Cell volume [m3]": cell_design["cell_volume"]["value"] / 1000.0,
+        "Cell volume [m3]": cell_vol_m3,
     }
 
     # Combine base parameters
@@ -575,12 +665,7 @@ def _run_dcir_sweep(
 
     # Capacity calibration (done once at reference temperature)
     ref_temp = 298.15
-    target_capacity_Ah = nominal_capacity
-
-    print("\n" + "=" * 80)
-    print("CAPACITY CALIBRATION")
-    print("=" * 80)
-    print(f"Target capacity: {target_capacity_Ah:.2f} Ah")
+    target_capacity_Ah = cell_design["nominal_capacity"]["value"]
 
     # Set reference temperature for calibration
     default_params.update(
@@ -613,9 +698,6 @@ def _run_dcir_sweep(
     MAX_ITERATIONS = 20
     TOLERANCE = 0.0001
 
-    print(f"Convergence tolerance: {TOLERANCE*100:.3f}%")
-    print("-" * 80)
-
     for iteration in range(MAX_ITERATIONS):
         sim_capacity = pybamm.Simulation(
             model_capacity,
@@ -631,7 +713,6 @@ def _run_dcir_sweep(
             return {"success": False, "error": f"Capacity calibration failed: {e}"}
 
         if not hasattr(sol_capacity, "cycles") or len(sol_capacity.cycles) < 4:
-            print(f"Warning: Insufficient cycles: {len(sol_capacity.cycles)}")
             break
 
         discharge_cycle = sol_capacity.cycles[2]
@@ -641,16 +722,8 @@ def _run_dcir_sweep(
         )
 
         scale_factor = discharge_capacity / target_capacity_Ah
-        error_percent = abs(1 - scale_factor) * 100
-
-        print(
-            f"Iteration {iteration+1:2d}: Capacity = {discharge_capacity:6.2f} Ah, Error = {error_percent:6.3f}%"
-        )
 
         if 1 - TOLERANCE < scale_factor < 1 + TOLERANCE:
-            print("-" * 80)
-            print(f"Converged after {iteration+1} iterations!")
-
             ocv_100 = float(sol_capacity.cycles[1]["Terminal voltage [V]"].entries[-1])
             ocv_0 = float(sol_capacity.cycles[3]["Terminal voltage [V]"].entries[-1])
 
@@ -755,40 +828,48 @@ def _run_dcir_sweep(
 
                         if actual_time >= t_point * 0.9:
                             v_pulse = voltage_V[t_idx]
-                            dcir_ohm = (v_rest - v_pulse) / i_amplitude + contact_resistance
+                            dcir_ohm = (
+                                v_rest - v_pulse
+                            ) / i_amplitude + contact_resistance
                             dcir_mOhm[t_point] = float(dcir_ohm * 1000)
                         else:
                             dcir_mOhm[t_point] = np.nan
 
-                    surface_data.append({
-                        "soc": float(soc),
-                        "soc_pct": float(soc * 100),
-                        "temperature_K": float(temp_K),
-                        "temperature_C": float(temp_C),
-                        "c_rate": float(c_rate),
-                        "dcir_mOhm": dcir_mOhm,
-                        "success": True,
-                    })
+                    surface_data.append(
+                        {
+                            "soc": float(soc),
+                            "soc_pct": float(soc * 100),
+                            "temperature_K": float(temp_K),
+                            "temperature_C": float(temp_C),
+                            "c_rate": float(c_rate),
+                            "dcir_mOhm": dcir_mOhm,
+                            "success": True,
+                        }
+                    )
 
                     # Print 10s DCIR as summary
                     dcir_10s = dcir_mOhm.get(10.0, np.nan)
                     if not np.isnan(dcir_10s):
-                        print(f"  SOC={soc*100:.0f}%, C={c_rate}C: DCIR@10s = {dcir_10s:.3f} mΩ")
+                        print(
+                            f"  SOC={soc*100:.0f}%, C={c_rate}C: DCIR@10s = {dcir_10s:.3f} mΩ"
+                        )
                     else:
                         print(f"  SOC={soc*100:.0f}%, C={c_rate}C: Pulse ended early")
 
                 except pybamm.SolverError as e:
                     print(f"  SOC={soc*100:.0f}%, C={c_rate}C: Failed - {str(e)[:40]}")
-                    surface_data.append({
-                        "soc": float(soc),
-                        "soc_pct": float(soc * 100),
-                        "temperature_K": float(temp_K),
-                        "temperature_C": float(temp_C),
-                        "c_rate": float(c_rate),
-                        "dcir_mOhm": {t: np.nan for t in requested_points},
-                        "success": False,
-                        "error": str(e),
-                    })
+                    surface_data.append(
+                        {
+                            "soc": float(soc),
+                            "soc_pct": float(soc * 100),
+                            "temperature_K": float(temp_K),
+                            "temperature_C": float(temp_C),
+                            "c_rate": float(c_rate),
+                            "dcir_mOhm": {t: np.nan for t in requested_points},
+                            "success": False,
+                            "error": str(e),
+                        }
+                    )
 
     print("\n" + "=" * 80)
     print(f"Completed {sim_count} simulations")

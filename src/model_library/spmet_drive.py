@@ -156,11 +156,6 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
     # Capacity calibration
     target_capacity_Ah = cell_design["nominal_capacity"]["value"]
 
-    print("\n" + "=" * 80)
-    print("CAPACITY CALIBRATION")
-    print("=" * 80)
-    print(f"Target capacity: {target_capacity_Ah:.2f} Ah")
-
     charge_step = (
         f"Charge at 0.1C until {cell_design['upper_voltage_cutoff']['value']} V"
     )
@@ -182,9 +177,6 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
     MAX_ITERATIONS = 20
     TOLERANCE = 0.0001
 
-    print(f"Convergence tolerance: {TOLERANCE*100:.3f}%")
-    print("-" * 80)
-
     for iteration in range(MAX_ITERATIONS):
         sim_capacity = pybamm.Simulation(
             model_capacity,
@@ -197,11 +189,9 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
                 solver=pybamm.IDAKLUSolver(atol=1e-3, rtol=1e-3)
             )
         except pybamm.SolverError as e:
-            print(f"Capacity calibration failed: {e}")
             raise
 
         if not hasattr(sol_capacity, "cycles") or len(sol_capacity.cycles) < 4:
-            print(f"Warning: Insufficient cycles: {len(sol_capacity.cycles)}")
             break
 
         discharge_cycle = sol_capacity.cycles[2]
@@ -211,17 +201,8 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
         )
 
         scale_factor = discharge_capacity / target_capacity_Ah
-        error_percent = abs(1 - scale_factor) * 100
-
-        print(
-            f"Iteration {iteration+1:2d}: Capacity = {discharge_capacity:6.2f} Ah, "
-            f"Error = {error_percent:6.3f}%"
-        )
 
         if 1 - TOLERANCE < scale_factor < 1 + TOLERANCE:
-            print("-" * 80)
-            print(f"Converged after {iteration+1} iterations!")
-
             ocv_100 = float(sol_capacity.cycles[1]["Terminal voltage [V]"].entries[-1])
             ocv_0 = float(sol_capacity.cycles[3]["Terminal voltage [V]"].entries[-1])
 
@@ -242,13 +223,11 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
             },
             check_already_exists=False,
         )
-    else:
-        print(f"Warning: Did not converge after {MAX_ITERATIONS} iterations")
 
     return default_params, model_options
 
 
-def _run_pybamm_drive_cycle(
+def _run_pybamm_spmet_drivecycle(
     drive_cycle: dict,
     simulation_config: dict,
     default_params: pybamm.ParameterValues,
@@ -375,6 +354,11 @@ def _run_pybamm_drive_cycle(
             "Volume-averaged cell temperature [K]",
             "Terminal power [W]",
             "Anode potential [V]",
+            # Overpotential decomposition
+            "Sum of x-averaged negative electrode reaction overpotentials [V]",
+            "X-averaged negative electrode concentration overpotential [V]",
+            "Negative electrode SEI film overpotential [V]",
+            "Ohmic losses [V]",
         ],
     )
 
@@ -453,6 +437,33 @@ def _run_pybamm_drive_cycle(
 
         try:
             result["anode_potential_V"] = solution["Anode potential [V]"].entries
+        except (KeyError, AttributeError):
+            pass
+
+        # Extract overpotentials
+        try:
+            result["reaction_overpotential_V"] = solution[
+                "Sum of x-averaged negative electrode reaction overpotentials [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["concentration_overpotential_V"] = solution[
+                "X-averaged negative electrode concentration overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["sei_overpotential_V"] = solution[
+                "Negative electrode SEI film overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            result["ohmic_overpotential_V"] = solution["Ohmic losses [V]"].entries
         except (KeyError, AttributeError):
             pass
 
@@ -578,7 +589,7 @@ def estimate_speed_from_power(
     return speeds, metadata
 
 
-def run_drive_cycle(
+def run_spmet_drivecycle(
     cell_design: dict,
     simulation_config: dict,
 ) -> dict:
@@ -682,7 +693,7 @@ def run_drive_cycle(
     default_params, model_options = _build_pybamm_params(cell_design, simulation_config)
 
     # Run simulation
-    sim_result = _run_pybamm_drive_cycle(
+    sim_result = _run_pybamm_spmet_drivecycle(
         drive_cycle=drive_cycle,
         simulation_config=simulation_config,
         default_params=default_params,
@@ -943,134 +954,3 @@ def run_drive_cycle(
         "termination_reason": termination_reason,
         "config": simulation_config,
     }
-
-
-def print_drive_cycle_report(result: dict) -> None:
-    """
-    Print a formatted report of drive cycle simulation results.
-
-    Args:
-        result: Result dictionary from run_drive_cycle()
-    """
-    if not result.get("success"):
-        print(f"Simulation failed: {result.get('error', 'Unknown error')}")
-        return
-
-    summary = result["summary"]
-    energy = result["energy_analysis"]
-    range_info = result["range_analysis"]
-
-    print("=" * 70)
-    print("DRIVE CYCLE SIMULATION REPORT")
-    print("=" * 70)
-
-    print(f"\n{'─' * 70}")
-    print("SIMULATION SUMMARY")
-    print(f"{'─' * 70}")
-    print(
-        f"  Duration:        {summary['duration_s']:.1f} s ({summary['duration_min']:.1f} min)"
-    )
-    print(f"  Data points:     {summary['data_points']}")
-    print(
-        f"  Voltage:         {summary['voltage_min_V']:.3f} - {summary['voltage_max_V']:.3f} V"
-    )
-    print(
-        f"  Current:         {summary['current_min_A']:.1f} - {summary['current_max_A']:.1f} A"
-    )
-    print(
-        f"  Power:           {summary['power_min_W']:.1f} - {summary['power_max_W']:.1f} W"
-    )
-    print(
-        f"  Temperature:     {summary['temperature_min_C']:.1f} - {summary['temperature_max_C']:.1f} °C"
-    )
-    print(f"  Temp rise:       {summary['temperature_rise_C']:.1f} °C")
-
-    print(f"\n{'─' * 70}")
-    print("ENERGY ANALYSIS")
-    print(f"{'─' * 70}")
-    print(f"  Energy discharged:   {energy['energy_discharged_Wh']:.2f} Wh")
-    print(f"  Energy regenerated:  {energy['energy_regenerated_Wh']:.2f} Wh")
-    print(f"  Net energy:          {energy['energy_net_Wh']:.2f} Wh")
-    print(f"  Capacity used:       {energy['capacity_used_Ah']:.2f} Ah")
-    print(f"  SOC change:          {energy['soc_change_pct']:.1f}%")
-    if energy["regeneration_ratio_pct"] > 0:
-        print(f"  Regen ratio:         {energy['regeneration_ratio_pct']:.1f}%")
-
-    print(f"\n{'─' * 70}")
-    print("RANGE ANALYSIS")
-    print(f"{'─' * 70}")
-    print(f"  Drive cycle:         {range_info['cycle_label']}")
-    print(f"  Cycle duration:      {range_info['cycle_duration_s']:.0f} s")
-
-    if range_info.get("cycle_distance_km"):
-        print(f"  Cycle distance:      {range_info['cycle_distance_km']:.2f} km")
-        print(f"  Average speed:       {range_info.get('avg_speed_kmh', 0):.1f} km/h")
-        print(
-            f"  Energy consumption:  {range_info.get('energy_per_km_Wh', 0):.2f} Wh/km"
-        )
-
-    print(f"\n  Initial SOC:         {range_info['initial_soc']*100:.0f}%")
-    print(
-        f"  SOC limits:          {range_info['min_soc']*100:.0f}% - {range_info['max_soc']*100:.0f}%"
-    )
-    print(f"  Available capacity:  {range_info['available_capacity_Ah']:.1f} Ah")
-    print(f"  Cycles possible:     {range_info['cycles_possible']:.2f}")
-
-    time_label = "Flight" if range_info["is_aerial"] else "Drive"
-
-    if range_info.get("range_km"):
-        print(
-            f"\n  Estimated range:     {range_info['range_km']:.1f} km ({range_info['range_miles']:.1f} miles)"
-        )
-
-    time_key = "flight_time_min" if range_info["is_aerial"] else "drive_time_min"
-    if time_key in range_info:
-        print(f"  {time_label} time:        {range_info[time_key]:.1f} min")
-
-    print(
-        f"\n  --- Full Charge ({range_info['max_soc']*100:.0f}% to {range_info['min_soc']*100:.0f}%) ---"
-    )
-    if range_info.get("full_charge_range_km"):
-        print(
-            f"  Range:               {range_info['full_charge_range_km']:.1f} km ({range_info['full_charge_range_miles']:.1f} miles)"
-        )
-
-    full_time_key = f"full_charge_{time_label.lower()}_time_min"
-    if full_time_key in range_info:
-        print(f"  {time_label} time:        {range_info[full_time_key]:.1f} min")
-
-    # Pack configuration
-    if "pack_config" in range_info:
-        pack = range_info["pack_config"]
-        print(f"\n{'─' * 70}")
-        print("PACK CONFIGURATION")
-        print(f"{'─' * 70}")
-        print(
-            f"  Configuration:       {pack['cells_in_series']}S{pack['cells_in_parallel']}P ({pack['total_cells']} cells)"
-        )
-        if range_info.get("pack_full_charge_range_km"):
-            print(
-                f"  Pack range:          {range_info['pack_full_charge_range_km']:.1f} km"
-            )
-
-    # Vehicle physics
-    if "vehicle_physics" in range_info:
-        vp = range_info["vehicle_physics"]
-        print(f"\n{'─' * 70}")
-        print("VEHICLE PHYSICS")
-        print(f"{'─' * 70}")
-        print(f"  Vehicle type:        {vp['vehicle_type']}")
-        print(f"  Weight:              {vp['weight_kg']:.1f} kg")
-        print(f"  Drag coefficient:    {vp['drag_coefficient']}")
-        print(f"  Frontal area:        {vp['frontal_area_m2']:.3f} m²")
-        print(f"  Rolling resistance:  {vp['rolling_resistance']}")
-        print(f"  Drivetrain eff:      {vp['drivetrain_efficiency']*100:.0f}%")
-        print(f"  Avg speed:           {vp['avg_speed_kmh']:.1f} km/h")
-        print(f"  Max speed:           {vp['max_speed_kmh']:.1f} km/h")
-        if vp.get("physics_distance_km") is not None:
-            print(f"  Physics distance:    {vp['physics_distance_km']:.2f} km")
-        if vp.get("actual_distance_km") is not None:
-            print(f"  Actual distance:     {vp['actual_distance_km']:.2f} km")
-            print(f"  Distance error:      {vp['distance_error_pct']:+.1f}%")
-
-    print("=" * 70)

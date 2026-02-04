@@ -1,13 +1,12 @@
 """
-SPMeT (Single Particle Model with electrolyte and Thermal) Module
+SPMeT Energy Module
 
-Unified PyBaMM model that takes experiment strings via simulation config
-and returns raw time series data for post-processing.
+Energy analysis with power profiles, auto-detecting charge/discharge phases
+and calculating total round-trip efficiency.
 """
 
 import pybamm
 import numpy as np
-import re
 
 
 def _build_pybamm_params(
@@ -157,7 +156,6 @@ def _build_pybamm_params(
     # ========== CAPACITY CALIBRATION ==========
     target_capacity_Ah = cell_design["nominal_capacity"]["value"]
 
-    # Use C-rate syntax which PyBaMM handles better
     charge_step = (
         f"Charge at 0.1C until {cell_design['upper_voltage_cutoff']['value']} V"
     )
@@ -233,39 +231,36 @@ def _build_pybamm_params(
     return default_params, model_options
 
 
-def run_spmet(
+def run_spmet_energy(
     cell_design: dict,
-    simulation_config: dict | None = None,
-) -> list[dict]:
+    simulation_config: dict,
+) -> dict:
     """
-    Run SPMeT simulation with specified experiment configuration.
+    Run SPMeT energy analysis with power profile.
 
-    This function handles:
-    1. Model parameter setup from cell design manifest
-    2. Capacity calibration via electrode width adjustment
-    3. Running the specified experiment(s) with custom terminations
-    4. Returning raw time series data with overpotential breakdown
+    Auto-detects charge/discharge phases from power sign and calculates
+    total energy in/out and round-trip efficiency.
 
     Args:
         cell_design: Cell design parameters dictionary
 
         simulation_config: Simulation configuration dictionary containing:
-            - experiments: List of PyBaMM experiment strings to run (required)
-            - experiment_labels: List of labels for each experiment (optional)
+            - power_profile: Dict with power profile data (required):
+                - time_s: Array of time points [s]
+                - power_W: Array of power values [W] (positive=discharge, negative=charge)
+                - label: Label for the profile (optional)
             - initial_soc: Initial state of charge [0-1] (default: 0.8)
             - period: Sampling period string (default: "1 second")
-            - lower_voltage_cutoff: Lower voltage cutoff [V] (required)
             - upper_voltage_cutoff: Upper voltage cutoff [V] (required)
+            - lower_voltage_cutoff: Lower voltage cutoff [V] (required)
             - contact_resistance: Contact resistance [Ohm] (required)
-            - anode_potential_threshold_V: Anode potential cutoff [V] (optional)
-            - jelly_roll_temperature_threshold_K: Temperature cutoff [K] (optional)
             - total_heat_transfer_coefficient: Heat transfer coefficient [W.m-2.K-1] (required)
             - cooling_surface_area: Cell cooling surface area [m2] (required)
             - ambient_temperature: Ambient temperature [K] (required)
             - initial_temperature: Initial temperature [K] (required)
 
     Returns:
-        List of dictionaries, one per experiment, each containing:
+        Dictionary containing:
             - time_s: Array of time points [s]
             - voltage_V: Array of terminal voltages [V]
             - current_A: Array of currents [A]
@@ -278,15 +273,25 @@ def run_spmet(
             - concentration_overpotential_V: Array of concentration overpotentials [V] (if available)
             - sei_overpotential_V: Array of SEI overpotentials [V] (if available)
             - ohmic_overpotential_V: Array of ohmic losses [V] (if available)
-            - experiment_label: Label for this experiment
+            - charge_phase_indices: Array of indices where power < 0 (charging)
+            - discharge_phase_indices: Array of indices where power > 0 (discharging)
+            - total_energy_in_Wh: Total energy charged [Wh]
+            - total_energy_out_Wh: Total energy discharged [Wh]
+            - energy_dissipated_Wh: Total energy dissipated [Wh]
+            - round_trip_efficiency: Energy out / Energy in [-]
+            - profile_label: Label for this profile
             - success: Boolean indicating if simulation succeeded
             - error: Error message if failed (optional)
-            - config: Configuration used
 
     Example:
+        >>> power_profile = {
+        ...     "time_s": [0, 1800, 3600, 5400],
+        ...     "power_W": [-1000, -1000, 1000, 1000],  # charge then discharge
+        ...     "label": "charge_discharge_cycle"
+        ... }
         >>> config = {
-        ...     "experiments": ["Discharge at 1C for 3600 seconds"],
-        ...     "initial_soc": 1.0,
+        ...     "power_profile": power_profile,
+        ...     "initial_soc": 0.5,
         ...     "upper_voltage_cutoff": 3.65,
         ...     "lower_voltage_cutoff": 2.5,
         ...     "contact_resistance": 1e-5,
@@ -295,43 +300,35 @@ def run_spmet(
         ...     "ambient_temperature": 298.15,
         ...     "initial_temperature": 298.15,
         ... }
-        >>> results = run_spmet(cell_design, config)
+        >>> result = run_spmet_energy(cell_design, config)
     """
-    if simulation_config is None:
-        raise ValueError("simulation_config must be provided")
-
-    # Convert old-style config (c_rate, duration_s, direction) to new experiments format
-    if "experiments" not in simulation_config and "c_rate" in simulation_config:
-        c_rate = simulation_config.get("c_rate", 1.0)
-        duration_s = simulation_config.get("duration_s", 30)
-        direction = simulation_config.get("direction", "discharge")
-
-        if direction == "discharge":
-            exp_str = f"Discharge at {c_rate}C for {duration_s} seconds"
-        else:
-            exp_str = f"Charge at {c_rate}C for {duration_s} seconds"
-
-        simulation_config = {
-            **simulation_config,
-            "experiments": [exp_str],
-            "experiment_labels": [f"{c_rate}C_{direction}"],
-            "period": "0.1 second",
-        }
-
-    # Build PyBaMM parameters from manifest (includes calibration)
+    # Build parameters (includes calibration)
     default_params, model_options = _build_pybamm_params(cell_design, simulation_config)
 
-    # Get experiments from config
-    experiments = simulation_config.get("experiments")
-    experiment_labels = simulation_config.get("experiment_labels", [])
+    # Get power profile
+    power_profile = simulation_config["power_profile"]
+    time_s = np.array(power_profile["time_s"])
+    power_W = np.array(power_profile["power_W"])
+    label = power_profile.get("label", "energy_analysis")
 
-    if not experiments:
-        raise ValueError("No experiments provided in simulation_config['experiments']")
+    print("\n" + "=" * 80)
+    print("RUNNING ENERGY ANALYSIS")
+    print("=" * 80)
+    print(f"  Label: {label}")
+    print(f"  Duration: {time_s[-1]:.1f} s ({time_s[-1]/60:.1f} min)")
+    print(f"  Power range: {power_W.min():.1f} to {power_W.max():.1f} W")
+    print(f"  Data points: {len(time_s)}")
 
-    # Initialize solver and points
+    # Create power step
+    power_data = np.column_stack((time_s, power_W))
+    power_step = pybamm.step.power(power_data, duration=time_s[-1])
+
+    period = simulation_config.get("period", "1 second")
+    experiment = pybamm.Experiment([power_step], period=period)
+
+    # Setup solver with overpotential variables
     var_pts = {"x_n": 20, "x_s": 20, "x_p": 20, "r_n": 20, "r_p": 20}
 
-    # Add overpotential variables to output
     output_vars = [
         "Time [s]",
         "Terminal voltage [V]",
@@ -343,7 +340,6 @@ def run_spmet(
         "Anode potential [V]",
     ]
 
-    # Try to add overpotential variables (may not be available in all PyBaMM versions)
     overpotential_vars = [
         "Sum of x-averaged negative electrode reaction overpotentials [V]",
         "X-averaged negative electrode concentration overpotential [V]",
@@ -357,160 +353,113 @@ def run_spmet(
         output_variables=output_vars + overpotential_vars,
     )
 
+    # Create model
+    model = pybamm.lithium_ion.SPMe(options=model_options)
+    model.variables["Anode potential [V]"] = model.variables[
+        "Negative electrode surface potential difference at separator interface [V]"
+    ]
+
+    # Setup simulation
+    sim = pybamm.Simulation(
+        model,
+        parameter_values=default_params,
+        experiment=experiment,
+        var_pts=var_pts,
+    )
+
     initial_soc = simulation_config.get("initial_soc", 0.8)
-    period = simulation_config.get("period", "1 second")
-    all_results = []
 
-    # ========== EXPERIMENT MODE ==========
-    print("\n" + "=" * 80)
-    print("RUNNING EXPERIMENTS")
-    print("=" * 80)
+    try:
+        print(f"  Running simulation (initial SOC: {initial_soc*100:.0f}%)...")
+        solution = sim.solve(initial_soc=initial_soc, solver=solver)
 
-    # Pad labels if needed
-    while len(experiment_labels) < len(experiments):
-        experiment_labels.append(f"exp_{len(experiment_labels)}")
+        # Extract time series data
+        result = {
+            "time_s": solution["Time [s]"].entries,
+            "voltage_V": solution["Terminal voltage [V]"].entries,
+            "current_A": solution["Current [A]"].entries,
+            "temperature_K": solution["Volume-averaged cell temperature [K]"].entries,
+            "capacity_Ah": solution["Discharge capacity [A.h]"].entries,
+            "energy_Wh": solution["Discharge energy [W.h]"].entries,
+            "power_W": solution["Power [W]"].entries,
+            "anode_potential_V": solution["Anode potential [V]"].entries,
+            "profile_label": label,
+            "success": True,
+        }
 
-    for exp_str, label in zip(experiments, experiment_labels):
-        print(f"\nRunning: {label}")
-        print(f"  Experiment: {exp_str[:60]}{'...' if len(exp_str) > 60 else ''}")
-
-        # Get thresholds from config
-        anode_threshold = simulation_config.get("anode_potential_threshold_V", 0.02)
-        temp_threshold = simulation_config.get("jelly_roll_temperature_threshold_K")
-        upper_voltage = simulation_config["upper_voltage_cutoff"]
-        lower_voltage = simulation_config["lower_voltage_cutoff"]
-        max_time_s = simulation_config.get("max_charge_time_s", 3600)
-
-        # Define cutoff functions
-        def anode_potential_cutoff(variables):
-            return variables["Anode potential [V]"] - anode_threshold
-
-        def temperature_cutoff(variables):
-            return temp_threshold - variables["Volume-averaged cell temperature [K]"]
-
-        # Build termination conditions list
-        termination_conditions = []
-
-        if "anode_potential_threshold_V" in simulation_config:
-            termination_conditions.append(
-                pybamm.step.CustomTermination(
-                    "Anode potential cut-off [V]", anode_potential_cutoff
-                )
-            )
-
-        if temp_threshold is not None:
-            termination_conditions.append(
-                pybamm.step.CustomTermination(
-                    "Jelly roll temperature cut-off [K]", temperature_cutoff
-                )
-            )
-
-        if termination_conditions:
-            # Standard mode with custom terminations
-            base_exp_str = re.sub(r"\s+or until\s+[\d.]+\s*V", "", exp_str)
-
-            # Determine voltage limit based on direction
-            if "charge" in exp_str.lower():
-                termination_conditions.append(f"{upper_voltage}V")
-            else:
-                termination_conditions.append(f"{lower_voltage}V")
-
-            experiment = pybamm.Experiment(
-                [
-                    ("Rest for 1 seconds"),
-                    (
-                        pybamm.step.string(
-                            base_exp_str,
-                            termination=termination_conditions,
-                        ),
-                    ),
-                ],
-                period=period,
-            )
-        else:
-            # Simple mode: use experiment string directly
-            experiment = pybamm.Experiment(
-                [
-                    ("Rest for 1 seconds"),
-                    (exp_str,),
-                ],
-                period=period,
-            )
-
-        # Common simulation logic for all experiment branches
-        model = pybamm.lithium_ion.SPMe(options=model_options)
-
-        # Add anode potential variable for lithium plating monitoring
-        # Use potential at separator interface (minimum during charging, where plating occurs first)
-        model.variables["Anode potential [V]"] = model.variables[
-            "Negative electrode surface potential difference at separator interface [V]"
-        ]
-
-        sim = pybamm.Simulation(
-            model,
-            parameter_values=default_params,
-            experiment=experiment,
-            var_pts=var_pts,
-        )
+        # Extract overpotentials
+        try:
+            result["reaction_overpotential_V"] = solution[
+                "Sum of x-averaged negative electrode reaction overpotentials [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
 
         try:
-            solution = sim.solve(initial_soc=initial_soc, solver=solver)
+            result["concentration_overpotential_V"] = solution[
+                "X-averaged negative electrode concentration overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
 
-            # Extract cycle data
-            if hasattr(solution, "cycles") and len(solution.cycles) > 1:
-                data_source = solution.cycles[1]
-            else:
-                data_source = solution
+        try:
+            result["sei_overpotential_V"] = solution[
+                "Negative electrode SEI film overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
 
-            result = {
-                "time_s": data_source["Time [s]"].entries,
-                "voltage_V": data_source["Terminal voltage [V]"].entries,
-                "current_A": data_source["Current [A]"].entries,
-                "temperature_K": data_source[
-                    "Volume-averaged cell temperature [K]"
-                ].entries,
-                "capacity_Ah": data_source["Discharge capacity [A.h]"].entries,
-                "energy_Wh": data_source["Discharge energy [W.h]"].entries,
-                "power_W": data_source["Power [W]"].entries,
-                "anode_potential_V": data_source["Anode potential [V]"].entries,
-                "experiment_label": label,
-                "success": True,
-                "config": simulation_config,
-            }
+        try:
+            result["ohmic_overpotential_V"] = solution["Ohmic losses [V]"].entries
+        except (KeyError, AttributeError):
+            pass
 
-            # Try to extract overpotential data if available
-            try:
-                result["reaction_overpotential_V"] = data_source[
-                    "Sum of x-averaged negative electrode reaction overpotentials [V]"
-                ].entries
-            except (KeyError, AttributeError):
-                pass
+        # Auto-detect charge/discharge phases from power sign
+        power_array = result["power_W"]
+        charge_indices = np.where(power_array < 0)[0]
+        discharge_indices = np.where(power_array > 0)[0]
 
-            try:
-                result["concentration_overpotential_V"] = data_source[
-                    "X-averaged negative electrode concentration overpotential [V]"
-                ].entries
-            except (KeyError, AttributeError):
-                pass
+        result["charge_phase_indices"] = charge_indices
+        result["discharge_phase_indices"] = discharge_indices
 
-            try:
-                result["sei_overpotential_V"] = data_source[
-                    "Negative electrode SEI film overpotential [V]"
-                ].entries
-            except (KeyError, AttributeError):
-                pass
+        # Calculate energy metrics
+        time_array = result["time_s"]
+        dt = np.diff(time_array, prepend=time_array[0])
 
-            try:
-                result["ohmic_overpotential_V"] = data_source[
-                    "Ohmic losses [V]"
-                ].entries
-            except (KeyError, AttributeError):
-                pass
+        # Total energy in (charging, power < 0)
+        energy_in_W_s = np.sum(np.abs(power_array[charge_indices]) * dt[charge_indices])
+        total_energy_in_Wh = energy_in_W_s / 3600.0
 
-            print(f"  Completed: {len(result['time_s'])} data points")
-            all_results.append(result)
+        # Total energy out (discharging, power > 0)
+        energy_out_W_s = np.sum(power_array[discharge_indices] * dt[discharge_indices])
+        total_energy_out_Wh = energy_out_W_s / 3600.0
 
-        except pybamm.SolverError as e:
-            print(f"  Failed: {str(e)[:60]}")
+        # Round-trip efficiency
+        if total_energy_in_Wh > 0:
+            round_trip_efficiency = total_energy_out_Wh / total_energy_in_Wh
+        else:
+            round_trip_efficiency = 0.0
 
-    return all_results
+        # Energy dissipated
+        energy_dissipated_Wh = total_energy_in_Wh - total_energy_out_Wh
+
+        result["total_energy_in_Wh"] = total_energy_in_Wh
+        result["total_energy_out_Wh"] = total_energy_out_Wh
+        result["energy_dissipated_Wh"] = energy_dissipated_Wh
+        result["round_trip_efficiency"] = round_trip_efficiency
+
+        print(f"  Completed: {len(result['time_s'])} data points")
+        print(f"  Energy in: {total_energy_in_Wh:.2f} Wh")
+        print(f"  Energy out: {total_energy_out_Wh:.2f} Wh")
+        print(f"  Round-trip efficiency: {round_trip_efficiency*100:.2f}%")
+        print(f"  Energy dissipated: {energy_dissipated_Wh:.2f} Wh")
+
+        return result
+
+    except pybamm.SolverError as e:
+        print(f"  Failed: {str(e)[:100]}")
+        return {
+            "profile_label": label,
+            "success": False,
+            "error": str(e),
+        }

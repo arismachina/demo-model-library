@@ -1,8 +1,9 @@
 """
-SPMeT (Single Particle Model with electrolyte and Thermal) Module
+SPMeT Fast Charge Module
 
-Unified PyBaMM model that takes experiment strings via simulation config
-and returns raw time series data for post-processing.
+Anode-riding fast charge algorithm: CC → Anode Plateau → CV
+Prevents lithium plating during high-rate charging by maintaining
+anode potential above threshold.
 """
 
 import pybamm
@@ -157,7 +158,6 @@ def _build_pybamm_params(
     # ========== CAPACITY CALIBRATION ==========
     target_capacity_Ah = cell_design["nominal_capacity"]["value"]
 
-    # Use C-rate syntax which PyBaMM handles better
     charge_step = (
         f"Charge at 0.1C until {cell_design['upper_voltage_cutoff']['value']} V"
     )
@@ -233,39 +233,39 @@ def _build_pybamm_params(
     return default_params, model_options
 
 
-def run_spmet(
+def run_spmet_fastcharge(
     cell_design: dict,
-    simulation_config: dict | None = None,
-) -> list[dict]:
+    simulation_config: dict,
+) -> dict:
     """
-    Run SPMeT simulation with specified experiment configuration.
+    Run SPMeT fast charge with anode-riding algorithm.
 
-    This function handles:
-    1. Model parameter setup from cell design manifest
-    2. Capacity calibration via electrode width adjustment
-    3. Running the specified experiment(s) with custom terminations
-    4. Returning raw time series data with overpotential breakdown
+    Three-phase charging protocol:
+    1. CC (Constant Current): Charge at specified C-rate until anode potential threshold
+    2. Anode Riding: Maintain anode potential at threshold (prevents Li plating)
+    3. CV (Constant Voltage): Hold at upper voltage until termination current
 
     Args:
         cell_design: Cell design parameters dictionary
 
         simulation_config: Simulation configuration dictionary containing:
-            - experiments: List of PyBaMM experiment strings to run (required)
-            - experiment_labels: List of labels for each experiment (optional)
-            - initial_soc: Initial state of charge [0-1] (default: 0.8)
-            - period: Sampling period string (default: "1 second")
-            - lower_voltage_cutoff: Lower voltage cutoff [V] (required)
-            - upper_voltage_cutoff: Upper voltage cutoff [V] (required)
-            - contact_resistance: Contact resistance [Ohm] (required)
-            - anode_potential_threshold_V: Anode potential cutoff [V] (optional)
+            - c_rate: Charging C-rate for CC phase (required)
+            - anode_potential_threshold_V: Anode potential cutoff [V] (default: 0.02)
             - jelly_roll_temperature_threshold_K: Temperature cutoff [K] (optional)
+            - cv_termination_c_rate: Termination C-rate for CV phase (default: 0.05)
+            - max_charge_time_s: Maximum total charge time [s] (default: 3600)
+            - initial_soc: Initial state of charge [0-1] (default: 0.1)
+            - period: Sampling period string (default: "1 second")
+            - upper_voltage_cutoff: Upper voltage cutoff [V] (required)
+            - lower_voltage_cutoff: Lower voltage cutoff [V] (required)
+            - contact_resistance: Contact resistance [Ohm] (required)
             - total_heat_transfer_coefficient: Heat transfer coefficient [W.m-2.K-1] (required)
             - cooling_surface_area: Cell cooling surface area [m2] (required)
             - ambient_temperature: Ambient temperature [K] (required)
             - initial_temperature: Initial temperature [K] (required)
 
     Returns:
-        List of dictionaries, one per experiment, each containing:
+        Dictionary containing:
             - time_s: Array of time points [s]
             - voltage_V: Array of terminal voltages [V]
             - current_A: Array of currents [A]
@@ -278,15 +278,19 @@ def run_spmet(
             - concentration_overpotential_V: Array of concentration overpotentials [V] (if available)
             - sei_overpotential_V: Array of SEI overpotentials [V] (if available)
             - ohmic_overpotential_V: Array of ohmic losses [V] (if available)
-            - experiment_label: Label for this experiment
+            - phase_labels: Array marking CC/plateau/CV phases (1=CC, 2=plateau, 3=CV)
+            - charge_time_s: Total charge time [s]
+            - final_soc: Final state of charge
             - success: Boolean indicating if simulation succeeded
             - error: Error message if failed (optional)
-            - config: Configuration used
 
     Example:
         >>> config = {
-        ...     "experiments": ["Discharge at 1C for 3600 seconds"],
-        ...     "initial_soc": 1.0,
+        ...     "c_rate": 5.0,
+        ...     "anode_potential_threshold_V": 0.02,
+        ...     "cv_termination_c_rate": 0.05,
+        ...     "max_charge_time_s": 1800,
+        ...     "initial_soc": 0.1,
         ...     "upper_voltage_cutoff": 3.65,
         ...     "lower_voltage_cutoff": 2.5,
         ...     "contact_resistance": 1e-5,
@@ -295,43 +299,99 @@ def run_spmet(
         ...     "ambient_temperature": 298.15,
         ...     "initial_temperature": 298.15,
         ... }
-        >>> results = run_spmet(cell_design, config)
+        >>> result = run_spmet_fastcharge(cell_design, config)
     """
-    if simulation_config is None:
-        raise ValueError("simulation_config must be provided")
-
-    # Convert old-style config (c_rate, duration_s, direction) to new experiments format
-    if "experiments" not in simulation_config and "c_rate" in simulation_config:
-        c_rate = simulation_config.get("c_rate", 1.0)
-        duration_s = simulation_config.get("duration_s", 30)
-        direction = simulation_config.get("direction", "discharge")
-
-        if direction == "discharge":
-            exp_str = f"Discharge at {c_rate}C for {duration_s} seconds"
-        else:
-            exp_str = f"Charge at {c_rate}C for {duration_s} seconds"
-
-        simulation_config = {
-            **simulation_config,
-            "experiments": [exp_str],
-            "experiment_labels": [f"{c_rate}C_{direction}"],
-            "period": "0.1 second",
-        }
-
-    # Build PyBaMM parameters from manifest (includes calibration)
+    # Build parameters and calibrate
     default_params, model_options = _build_pybamm_params(cell_design, simulation_config)
 
-    # Get experiments from config
-    experiments = simulation_config.get("experiments")
-    experiment_labels = simulation_config.get("experiment_labels", [])
+    # Get configuration
+    c_rate = simulation_config["c_rate"]
+    anode_threshold = simulation_config.get("anode_potential_threshold_V", 0.02)
+    temp_threshold = simulation_config.get("jelly_roll_temperature_threshold_K")
+    upper_voltage = simulation_config["upper_voltage_cutoff"]
+    cv_termination = simulation_config.get("cv_termination_c_rate", 0.05)
+    max_time_s = simulation_config.get("max_charge_time_s", 3600)
+    initial_soc = simulation_config.get("initial_soc", 0.1)
+    period = simulation_config.get("period", "1 second")
 
-    if not experiments:
-        raise ValueError("No experiments provided in simulation_config['experiments']")
+    print("\n" + "=" * 80)
+    print("RUNNING FAST CHARGE (ANODE-RIDING)")
+    print("=" * 80)
+    print(f"  C-rate: {c_rate}C")
+    print(f"  Anode threshold: {anode_threshold} V")
+    print(f"  Upper voltage: {upper_voltage} V")
+    print(f"  CV termination: {cv_termination}C")
+    print(f"  Max time: {max_time_s} s")
+    print(f"  Initial SOC: {initial_soc*100:.0f}%")
 
-    # Initialize solver and points
+    # Define cutoff functions
+    def anode_potential_cutoff(variables):
+        return variables["Anode potential [V]"] - anode_threshold
+
+    def temperature_cutoff(variables):
+        return temp_threshold - variables["Volume-averaged cell temperature [K]"]
+
+    # Build terminations for anode riding phase
+    riding_terminations = [f"{upper_voltage}V"]
+    if temp_threshold is not None:
+        riding_terminations.append(
+            pybamm.step.CustomTermination(
+                "Jelly roll temperature cut-off [K]", temperature_cutoff
+            )
+        )
+
+    # Create custom step to ride anode potential plateau
+    anode_potential_step = pybamm.step.CustomStepImplicit(
+        anode_potential_cutoff,
+        direction="charge",
+        duration=max_time_s,
+        termination=riding_terminations,
+    )
+
+    # CC phase terminations
+    cc_terminations = [
+        pybamm.step.CustomTermination(
+            "Anode potential cut-off [V]", anode_potential_cutoff
+        ),
+        f"{upper_voltage}V",
+    ]
+    if temp_threshold is not None:
+        cc_terminations.append(
+            pybamm.step.CustomTermination(
+                "Jelly roll temperature cut-off [K]", temperature_cutoff
+            )
+        )
+
+    # CV hold with time limit
+    cv_hold_step = pybamm.step.voltage(
+        upper_voltage,
+        duration=max_time_s,
+        termination=f"C/{int(1/cv_termination)}",
+    )
+
+    # Create three-phase experiment
+    experiment = pybamm.Experiment(
+        [
+            (
+                # Phase 1: CC charge until anode potential threshold
+                pybamm.step.c_rate(
+                    -c_rate,
+                    duration=max_time_s,
+                    termination=cc_terminations,
+                ),
+                # Phase 2: Ride anode potential plateau
+                anode_potential_step,
+                # Phase 3: CV hold until low current or time limit
+                cv_hold_step,
+            ),
+        ],
+        period=period,
+        termination=f"{max_time_s} seconds",
+    )
+
+    # Setup solver with overpotential variables
     var_pts = {"x_n": 20, "x_s": 20, "x_p": 20, "r_n": 20, "r_p": 20}
 
-    # Add overpotential variables to output
     output_vars = [
         "Time [s]",
         "Terminal voltage [V]",
@@ -343,7 +403,6 @@ def run_spmet(
         "Anode potential [V]",
     ]
 
-    # Try to add overpotential variables (may not be available in all PyBaMM versions)
     overpotential_vars = [
         "Sum of x-averaged negative electrode reaction overpotentials [V]",
         "X-averaged negative electrode concentration overpotential [V]",
@@ -357,160 +416,102 @@ def run_spmet(
         output_variables=output_vars + overpotential_vars,
     )
 
-    initial_soc = simulation_config.get("initial_soc", 0.8)
-    period = simulation_config.get("period", "1 second")
-    all_results = []
+    # Create model
+    model = pybamm.lithium_ion.SPMe(options=model_options)
+    model.variables["Anode potential [V]"] = model.variables[
+        "Negative electrode surface potential difference at separator interface [V]"
+    ]
 
-    # ========== EXPERIMENT MODE ==========
-    print("\n" + "=" * 80)
-    print("RUNNING EXPERIMENTS")
-    print("=" * 80)
+    # Setup simulation
+    sim = pybamm.Simulation(
+        model,
+        parameter_values=default_params,
+        experiment=experiment,
+        var_pts=var_pts,
+    )
 
-    # Pad labels if needed
-    while len(experiment_labels) < len(experiments):
-        experiment_labels.append(f"exp_{len(experiment_labels)}")
+    try:
+        print(f"  Running simulation...")
+        solution = sim.solve(initial_soc=initial_soc, solver=solver)
 
-    for exp_str, label in zip(experiments, experiment_labels):
-        print(f"\nRunning: {label}")
-        print(f"  Experiment: {exp_str[:60]}{'...' if len(exp_str) > 60 else ''}")
+        # Use full solution (not cycle extraction) for anode-riding
+        result = {
+            "time_s": solution["Time [s]"].entries,
+            "voltage_V": solution["Terminal voltage [V]"].entries,
+            "current_A": solution["Current [A]"].entries,
+            "temperature_K": solution["Volume-averaged cell temperature [K]"].entries,
+            "capacity_Ah": solution["Discharge capacity [A.h]"].entries,
+            "energy_Wh": solution["Discharge energy [W.h]"].entries,
+            "power_W": solution["Power [W]"].entries,
+            "anode_potential_V": solution["Anode potential [V]"].entries,
+            "success": True,
+        }
 
-        # Get thresholds from config
-        anode_threshold = simulation_config.get("anode_potential_threshold_V", 0.02)
-        temp_threshold = simulation_config.get("jelly_roll_temperature_threshold_K")
-        upper_voltage = simulation_config["upper_voltage_cutoff"]
-        lower_voltage = simulation_config["lower_voltage_cutoff"]
-        max_time_s = simulation_config.get("max_charge_time_s", 3600)
-
-        # Define cutoff functions
-        def anode_potential_cutoff(variables):
-            return variables["Anode potential [V]"] - anode_threshold
-
-        def temperature_cutoff(variables):
-            return temp_threshold - variables["Volume-averaged cell temperature [K]"]
-
-        # Build termination conditions list
-        termination_conditions = []
-
-        if "anode_potential_threshold_V" in simulation_config:
-            termination_conditions.append(
-                pybamm.step.CustomTermination(
-                    "Anode potential cut-off [V]", anode_potential_cutoff
-                )
-            )
-
-        if temp_threshold is not None:
-            termination_conditions.append(
-                pybamm.step.CustomTermination(
-                    "Jelly roll temperature cut-off [K]", temperature_cutoff
-                )
-            )
-
-        if termination_conditions:
-            # Standard mode with custom terminations
-            base_exp_str = re.sub(r"\s+or until\s+[\d.]+\s*V", "", exp_str)
-
-            # Determine voltage limit based on direction
-            if "charge" in exp_str.lower():
-                termination_conditions.append(f"{upper_voltage}V")
-            else:
-                termination_conditions.append(f"{lower_voltage}V")
-
-            experiment = pybamm.Experiment(
-                [
-                    ("Rest for 1 seconds"),
-                    (
-                        pybamm.step.string(
-                            base_exp_str,
-                            termination=termination_conditions,
-                        ),
-                    ),
-                ],
-                period=period,
-            )
-        else:
-            # Simple mode: use experiment string directly
-            experiment = pybamm.Experiment(
-                [
-                    ("Rest for 1 seconds"),
-                    (exp_str,),
-                ],
-                period=period,
-            )
-
-        # Common simulation logic for all experiment branches
-        model = pybamm.lithium_ion.SPMe(options=model_options)
-
-        # Add anode potential variable for lithium plating monitoring
-        # Use potential at separator interface (minimum during charging, where plating occurs first)
-        model.variables["Anode potential [V]"] = model.variables[
-            "Negative electrode surface potential difference at separator interface [V]"
-        ]
-
-        sim = pybamm.Simulation(
-            model,
-            parameter_values=default_params,
-            experiment=experiment,
-            var_pts=var_pts,
-        )
+        # Extract overpotentials
+        try:
+            result["reaction_overpotential_V"] = solution[
+                "Sum of x-averaged negative electrode reaction overpotentials [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
 
         try:
-            solution = sim.solve(initial_soc=initial_soc, solver=solver)
+            result["concentration_overpotential_V"] = solution[
+                "X-averaged negative electrode concentration overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
 
-            # Extract cycle data
-            if hasattr(solution, "cycles") and len(solution.cycles) > 1:
-                data_source = solution.cycles[1]
-            else:
-                data_source = solution
+        try:
+            result["sei_overpotential_V"] = solution[
+                "Negative electrode SEI film overpotential [V]"
+            ].entries
+        except (KeyError, AttributeError):
+            pass
 
-            result = {
-                "time_s": data_source["Time [s]"].entries,
-                "voltage_V": data_source["Terminal voltage [V]"].entries,
-                "current_A": data_source["Current [A]"].entries,
-                "temperature_K": data_source[
-                    "Volume-averaged cell temperature [K]"
-                ].entries,
-                "capacity_Ah": data_source["Discharge capacity [A.h]"].entries,
-                "energy_Wh": data_source["Discharge energy [W.h]"].entries,
-                "power_W": data_source["Power [W]"].entries,
-                "anode_potential_V": data_source["Anode potential [V]"].entries,
-                "experiment_label": label,
-                "success": True,
-                "config": simulation_config,
-            }
+        try:
+            result["ohmic_overpotential_V"] = solution["Ohmic losses [V]"].entries
+        except (KeyError, AttributeError):
+            pass
 
-            # Try to extract overpotential data if available
-            try:
-                result["reaction_overpotential_V"] = data_source[
-                    "Sum of x-averaged negative electrode reaction overpotentials [V]"
-                ].entries
-            except (KeyError, AttributeError):
-                pass
+        # Detect phase transitions
+        # Phase 1 (CC): High current, anode potential dropping
+        # Phase 2 (Anode riding): Anode potential at threshold, current reducing
+        # Phase 3 (CV): Voltage at max, current tapering
+        current_array = result["current_A"]
+        voltage_array = result["voltage_V"]
+        anode_array = result["anode_potential_V"]
 
-            try:
-                result["concentration_overpotential_V"] = data_source[
-                    "X-averaged negative electrode concentration overpotential [V]"
-                ].entries
-            except (KeyError, AttributeError):
-                pass
+        phase_labels = np.ones(len(current_array), dtype=int)  # Default to phase 1
 
-            try:
-                result["sei_overpotential_V"] = data_source[
-                    "Negative electrode SEI film overpotential [V]"
-                ].entries
-            except (KeyError, AttributeError):
-                pass
+        # Simple heuristic: phase changes when voltage reaches upper limit
+        # More sophisticated detection could use derivative analysis
+        for i in range(len(voltage_array)):
+            if voltage_array[i] >= upper_voltage - 0.01:  # Within 10mV of upper limit
+                phase_labels[i:] = 3  # CV phase
+                break
+            elif abs(anode_array[i] - anode_threshold) < 0.005:  # Near anode threshold
+                phase_labels[i] = 2  # Anode riding
 
-            try:
-                result["ohmic_overpotential_V"] = data_source[
-                    "Ohmic losses [V]"
-                ].entries
-            except (KeyError, AttributeError):
-                pass
+        result["phase_labels"] = phase_labels
+        result["charge_time_s"] = float(result["time_s"][-1])
 
-            print(f"  Completed: {len(result['time_s'])} data points")
-            all_results.append(result)
+        # Estimate final SOC (rough approximation from capacity change)
+        capacity_change = result["capacity_Ah"][-1] - result["capacity_Ah"][0]
+        nominal_capacity = cell_design["nominal_capacity"]["value"]
+        soc_change = -capacity_change / nominal_capacity  # Negative current = charging
+        result["final_soc"] = min(1.0, initial_soc + soc_change)
 
-        except pybamm.SolverError as e:
-            print(f"  Failed: {str(e)[:60]}")
+        print(f"  Completed: {len(result['time_s'])} data points")
+        print(f"  Charge time: {result['charge_time_s']:.1f} s")
+        print(f"  Final SOC: {result['final_soc']*100:.1f}%")
+        print(f"  Final voltage: {result['voltage_V'][-1]:.3f} V")
 
-    return all_results
+        return result
+
+    except pybamm.SolverError as e:
+        print(f"  Failed: {str(e)[:100]}")
+        return {
+            "success": False,
+            "error": str(e),
+        }
