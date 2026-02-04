@@ -224,7 +224,11 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
             check_already_exists=False,
         )
 
-    return default_params, model_options
+    return all_results
+
+
+# Backward compatibility aliases
+run_drive_cycle = run_spmet_drivecycle
 
 
 def _run_pybamm_spmet_drivecycle(
