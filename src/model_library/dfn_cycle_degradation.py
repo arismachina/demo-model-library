@@ -72,15 +72,25 @@ def _build_pybamm_params(
     print(f"\n✓ Building parameters...")
 
     # Detect chemistry from cell design and select appropriate parameter set
-    pos_material = cell_design.get("positive_electrode", {}).get("coating", {}).get(
-        "formulation", {}
-    ).get("primary_active_material", {}).get("name", "")
-    
+    pos_material = (
+        cell_design.get("positive_electrode", {})
+        .get("coating", {})
+        .get("formulation", {})
+        .get("primary_active_material", {})
+        .get("name", "")
+    )
+
     if "LFP" in pos_material.upper():
         # Use Prada2013 for LFP cells (proven working parameters)
         print(f"  - Detected LFP chemistry: {pos_material}")
         param = pybamm.ParameterValues("Prada2013")
         print(f"  - Using Prada2013 parameter set for LFP")
+        # Add missing SEI parameters for Prada2013 (required for degradation models)
+        param.update({
+            "Initial SEI thickness [m]": 1e-7,  # 100 nm
+            "SEI resistivity [Ohm.m]": 1000,
+            "SEI partial molar volume [m3.mol-1]": 5e-5,
+        }, check_already_exists=False)
     else:
         # Use Chen2020 for other chemistries (NMC, etc.)
         print(f"  - Detected {pos_material} chemistry")
@@ -198,7 +208,7 @@ def _build_pybamm_params(
         calibration_success = False
         calibration_error = None
         last_valid_solution = None
-        
+
         for iteration in range(MAX_ITERATIONS):
             sim_capacity = pybamm.Simulation(
                 model_capacity,
@@ -222,7 +232,9 @@ def _build_pybamm_params(
                 else:
                     # On first iteration, try adjusting electrode width and continue
                     if iteration == 0:
-                        print("  Solver failed on first iteration. Adjusting electrode width and retrying...")
+                        print(
+                            "  Solver failed on first iteration. Adjusting electrode width and retrying..."
+                        )
                         # Slightly increase electrode width to reduce current density
                         param.update(
                             {"Electrode width [m]": param["Electrode width [m]"] * 1.1},
@@ -236,7 +248,9 @@ def _build_pybamm_params(
             if not hasattr(sol_capacity, "cycles") or len(sol_capacity.cycles) < 4:
                 print(f"⚠ Warning: Insufficient cycles: {len(sol_capacity.cycles)}")
                 if iteration == 0 and last_valid_solution is None:
-                    print("  Experiment produced insufficient cycles. Adjusting parameters...")
+                    print(
+                        "  Experiment produced insufficient cycles. Adjusting parameters..."
+                    )
                     # Try increasing electrode width to reduce current density effects
                     param.update(
                         {"Electrode width [m]": param["Electrode width [m]"] * 1.15},
