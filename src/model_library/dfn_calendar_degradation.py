@@ -170,7 +170,9 @@ def build_dfn_calendar_degradation_params(
         "Total heat transfer coefficient [W.m-2.K-1]": sim_config.get(
             "total_heat_transfer_coefficient_W_m2K", 10.0
         ),
-        "Cell cooling surface area [m2]": sim_config.get("cooling_surface_area_m2", 0.01),
+        "Cell cooling surface area [m2]": sim_config.get(
+            "cooling_surface_area_m2", 0.01
+        ),
         "Cell volume [m3]": cell_design["cell_volume"]["value"] / 1000.0,
     }
 
