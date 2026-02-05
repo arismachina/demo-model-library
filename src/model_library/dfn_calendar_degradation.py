@@ -168,10 +168,10 @@ def build_dfn_calendar_degradation_params(
         "Ambient temperature [K]": ambient_temp_K,
         "Initial temperature [K]": ambient_temp_K,
         "Total heat transfer coefficient [W.m-2.K-1]": sim_config.get(
-            "total_heat_transfer_coefficient_W_m2K", 10.0
+            "total_heat_transfer_coefficient_W_m2K"
         ),
         "Cell cooling surface area [m2]": sim_config.get(
-            "cooling_surface_area_m2", 0.01
+            "cooling_surface_area_m2"
         ),
         "Cell volume [m3]": cell_design["cell_volume"]["value"] / 1000.0,
     }
@@ -180,13 +180,13 @@ def build_dfn_calendar_degradation_params(
     operating_conditions = {
         "Upper voltage cut-off [V]": sim_config.get(
             "upper_voltage_cutoff_V",
-            cell_design.get("upper_voltage_cutoff", {}).get("value", 4.2),
+            cell_design.get("upper_voltage_cutoff", {}).get("value"),
         ),
         "Lower voltage cut-off [V]": sim_config.get(
             "lower_voltage_cutoff_V",
-            cell_design.get("lower_voltage_cutoff", {}).get("value", 2.5),
+            cell_design.get("lower_voltage_cutoff", {}).get("value"),
         ),
-        "Contact resistance [Ohm]": sim_config.get("contact_resistance_Ohm", 0.0001),
+        "Contact resistance [Ohm]": sim_config.get("contact_resistance_Ohm"),
     }
 
     # Degradation parameters (SEI growth, particle mechanics, LAM)
@@ -520,12 +520,12 @@ def run_calendar_degradation(
     print("=" * 80)
 
     # Extract simulation parameters
-    calendar_time_days = sim_config.get("calendar_time_days", 365)
-    initial_soc = sim_config.get("initial_soc", 0.8)
-    ambient_temp_C = sim_config.get("ambient_temperature_C", 25)
+    calendar_time_days = sim_config.get("calendar_time_days")
+    initial_soc = sim_config.get("initial_soc")
+    ambient_temp_C = sim_config.get("ambient_temperature_C")
 
     # Extract stopping criteria
-    soh_threshold = sim_config.get("soh_threshold", None)
+    soh_threshold = sim_config.get("soh_threshold")
 
     # Convert time to seconds (always use full calendar_time_days)
     calendar_time_s = calendar_time_days * 24 * 3600
@@ -551,7 +551,7 @@ def run_calendar_degradation(
         default_params = build_dfn_calendar_degradation_params(cell_design, sim_config)
 
         # Capacity calibration (unless explicitly skipped)
-        if not sim_config.get("skip_capacity_calibration", False):
+        if not sim_config.get("skip_capacity_calibration"):
             default_params, calibration_success = calibrate_capacity(
                 cell_design, default_params, model_options
             )
@@ -599,8 +599,8 @@ def run_calendar_degradation(
         # Solve
         print(f"\n🚀 Solving calendar degradation (this may take a few minutes)...")
         solver = pybamm.IDAKLUSolver(
-            atol=sim_config.get("solver_atol", 1e-4),
-            rtol=sim_config.get("solver_rtol", 1e-4),
+            atol=sim_config.get("solver_atol"),
+            rtol=sim_config.get("solver_rtol"),
         )
 
         solution = sim.solve(initial_soc=initial_soc, solver=solver)
