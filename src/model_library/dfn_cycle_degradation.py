@@ -86,11 +86,14 @@ def _build_pybamm_params(
         param = pybamm.ParameterValues("Prada2013")
         print(f"  - Using Prada2013 parameter set for LFP")
         # Add missing SEI parameters for Prada2013 (required for degradation models)
-        param.update({
-            "Initial SEI thickness [m]": 1e-7,  # 100 nm
-            "SEI resistivity [Ohm.m]": 1000,
-            "SEI partial molar volume [m3.mol-1]": 5e-5,
-        }, check_already_exists=False)
+        param.update(
+            {
+                "Initial SEI thickness [m]": 1e-7,  # 100 nm
+                "SEI resistivity [Ohm.m]": 1000,
+                "SEI partial molar volume [m3.mol-1]": 5e-5,
+            },
+            check_already_exists=False,
+        )
     else:
         # Use Chen2020 for other chemistries (NMC, etc.)
         print(f"  - Detected {pos_material} chemistry")
@@ -113,6 +116,119 @@ def _build_pybamm_params(
     nominal_capacity_Ah = cell_design["nominal_capacity"]["value"]
     print(f"  - Nominal capacity: {nominal_capacity_Ah:.2f} Ah")
 
+    # Extract electrode and current collector parameters from cell design
+    pos_electrode = cell_design.get("positive_electrode", {})
+    neg_electrode = cell_design.get("negative_electrode", {})
+    separator = cell_design.get("separator", {})
+
+    # Build electrode and current collector parameters
+    electrode_params = {}
+
+    # Positive electrode
+    if pos_electrode.get("coating", {}):
+        pos_coat = pos_electrode["coating"]
+        electrode_params.update(
+            {
+                "Positive electrode thickness [m]": pos_coat.get("thickness", {}).get(
+                    "value", 0
+                )
+                / 1e6,
+                "Positive electrode porosity": pos_coat.get("porosity", {}).get(
+                    "value", 0.5
+                ),
+                "Positive electrode active material volume fraction": pos_coat.get(
+                    "active_material_volume_fraction", {}
+                ).get("value", 0.5),
+                "Positive electrode density [kg.m-3]": pos_coat.get("density", {}).get(
+                    "value", 2000
+                )
+                * 1000,
+            }
+        )
+
+    if pos_electrode.get("foil", {}):
+        pos_foil = pos_electrode["foil"]
+        electrode_params.update(
+            {
+                "Positive current collector thickness [m]": pos_foil.get(
+                    "thickness", {}
+                ).get("value", 20)
+                / 1e6,
+                "Positive current collector conductivity [S.m-1]": pos_foil.get(
+                    "material", {}
+                )
+                .get("electrical_conductivity", {})
+                .get("value", 3.8e7),
+                "Positive current collector density [kg.m-3]": pos_foil.get(
+                    "material", {}
+                )
+                .get("density", {})
+                .get("value", 2700)
+                * 1000,
+            }
+        )
+
+    # Negative electrode
+    if neg_electrode.get("coating", {}):
+        neg_coat = neg_electrode["coating"]
+        electrode_params.update(
+            {
+                "Negative electrode thickness [m]": neg_coat.get("thickness", {}).get(
+                    "value", 0
+                )
+                / 1e6,
+                "Negative electrode porosity": neg_coat.get("porosity", {}).get(
+                    "value", 0.5
+                ),
+                "Negative electrode active material volume fraction": neg_coat.get(
+                    "active_material_volume_fraction", {}
+                ).get("value", 0.5),
+                "Negative electrode density [kg.m-3]": neg_coat.get("density", {}).get(
+                    "value", 2000
+                )
+                * 1000,
+            }
+        )
+
+    if neg_electrode.get("foil", {}):
+        neg_foil = neg_electrode["foil"]
+        electrode_params.update(
+            {
+                "Negative current collector thickness [m]": neg_foil.get(
+                    "thickness", {}
+                ).get("value", 20)
+                / 1e6,
+                "Negative current collector conductivity [S.m-1]": neg_foil.get(
+                    "material", {}
+                )
+                .get("electrical_conductivity", {})
+                .get("value", 5.96e7),
+                "Negative current collector density [kg.m-3]": neg_foil.get(
+                    "material", {}
+                )
+                .get("density", {})
+                .get("value", 8960)
+                * 1000,
+            }
+        )
+
+    # Separator
+    if separator:
+        electrode_params.update(
+            {
+                "Separator thickness [m]": separator.get("thickness", {}).get(
+                    "value", 0
+                )
+                / 1e6,
+                "Separator porosity": separator.get("porosity", {}).get("value", 0.5),
+                "Separator density [kg.m-3]": separator.get("material", {})
+                .get("physical_properties", {})
+                .get("density", {})
+                .get("value", 1000)
+                * 1000,
+            }
+        )
+
     # Update capacity and contact resistance
     param.update(
         {
@@ -122,6 +238,9 @@ def _build_pybamm_params(
             ),
         }
     )
+
+    # Update electrode parameters
+    param.update(electrode_params, check_already_exists=False)
 
     # Heat transfer parameters
     param.update(
@@ -146,16 +265,62 @@ def _build_pybamm_params(
         f"  - Voltage range: {sim_config['lower_voltage_cutoff_V']:.2f}V - {sim_config['upper_voltage_cutoff_V']:.2f}V"
     )
 
-    # Degradation parameters (customizable)
-    if "sei_kinetic_rate_constant" in sim_config:
-        param["SEI kinetic rate constant [m.s-1]"] = sim_config[
-            "sei_kinetic_rate_constant"
-        ]
+    # =============================
+    # Degradation parameters (all configurable via sim_config)
+    # =============================
+    degradation_defaults = {
+        # SEI parameters
+        "Initial SEI thickness [m]": 1e-7,  # 100 nm
+        "SEI partial molar volume [m3.mol-1]": 5e-5,
+        "SEI resistivity [Ohm.m]": 1000,
+        "SEI growth activation energy [J.mol-1]": 5e4,
+        "SEI solvent diffusivity [m2.s-1]": 2.5e-22,
+        "Bulk solvent concentration [mol.m-3]": 2000.0,
+        "SEI reaction exchange current density [A.m-2]": 1.5e-7,
+        "SEI open-circuit potential [V]": 0.4,
+        "EC diffusivity [m2.s-1]": 2e-18,
+        "EC initial concentration in electrolyte [mol.m-3]": 4541.0,
+        # Particle mechanics
+        "Negative electrode Young's modulus [Pa]": 15e9,
+        "Positive electrode Young's modulus [Pa]": 375e9,
+        "Negative electrode Poisson's ratio": 0.3,
+        "Positive electrode Poisson's ratio": 0.3,
+        "Negative electrode partial molar volume [m3.mol-1]": 3.1e-6,
+        "Positive electrode partial molar volume [m3.mol-1]": -7.28e-7,
+        # Particle cracking
+        "Negative electrode initial crack length [m]": 1e-9,
+        "Positive electrode initial crack length [m]": 1e-9,
+        "Negative electrode cracking rate": 3.9e-20,
+        "Positive electrode cracking rate": 3.9e-20,
+        "Negative electrode number of cracks per unit area [m-2]": 3.16e15,
+        "Positive electrode number of cracks per unit area [m-2]": 3.16e15,
+        "Negative electrode initial crack width [m]": 1e-9,
+        "Positive electrode initial crack width [m]": 1e-9,
+        "Initial SEI on cracks thickness [m]": 1e-9,
+        # LAM
+        "Negative electrode LAM constant proportional term [s-1]": 1e-4,
+        "Positive electrode LAM constant proportional term [s-1]": 1e-4,
+        "Negative electrode LAM constant exponential term": 2.0,
+        "Positive electrode LAM constant exponential term": 2.0,
+        "Negative electrode critical stress [Pa]": 60e6,
+        "Positive electrode critical stress [Pa]": 60e6,
+    }
 
-    if "sei_growth_activation_energy" in sim_config:
-        param["SEI growth activation energy [J.mol-1]"] = sim_config[
-            "sei_growth_activation_energy"
-        ]
+    # Allow user to override any degradation parameter via sim_config
+    degradation_params = {}
+    for k, v in degradation_defaults.items():
+        # Convert sim_config keys to snake_case for user convenience
+        key_snake = (
+            k.lower()
+            .replace("[", "")
+            .replace("]", "")
+            .replace(" ", "_")
+            .replace("-", "_")
+        )
+        user_val = sim_config.get(k) or sim_config.get(key_snake)
+        degradation_params[k] = user_val if user_val is not None else v
+
+    param.update(degradation_params, check_already_exists=False)
 
     print(f"  ✓ Parameters built")
 
