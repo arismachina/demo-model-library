@@ -449,143 +449,6 @@ def _build_pybamm_params(
     return default_params, model_options, calibration_success
 
 
-def calibrate_capacity(
-    cell_design: Dict,
-    param: pybamm.ParameterValues,
-    model_options: Dict[str, str],
-) -> Tuple[pybamm.ParameterValues, bool]:
-    """
-    Calibrate DFN model capacity to match cell design nominal capacity.
-
-    This iteratively adjusts electrode width to match the target capacity by:
-    1. Running a slow charge-discharge test
-    2. Measuring actual capacity
-    3. Scaling electrode width proportionally
-    4. Repeating until convergence
-
-    Args:
-        cell_design: Cell design dictionary with nominal capacity
-        param: PyBaMM ParameterValues to calibrate
-        model_options: Model options dictionary
-
-    Returns:
-        Tuple of (calibrated_param, success)
-    """
-    target_capacity_Ah = cell_design["nominal_capacity"]["value"]
-    upper_voltage = param["Upper voltage cut-off [V]"]
-    lower_voltage = param["Lower voltage cut-off [V]"]
-
-    print("\n" + "=" * 80)
-    print("CAPACITY CALIBRATION")
-    print("=" * 80)
-    print(f"Target capacity: {target_capacity_Ah:.2f} Ah")
-    print(f"Voltage range: {lower_voltage:.2f}V - {upper_voltage:.2f}V")
-
-    # Build calibration experiment (slow C/10 charge-discharge)
-    charge_step = f"Charge at {target_capacity_Ah * 0.1} A until {upper_voltage} V"
-    hold_step = f"Hold at {upper_voltage} V for 2 hours or until C/50"
-    discharge_step = f"Discharge at {target_capacity_Ah * 0.1} A for 15 hours or until {lower_voltage} V"
-
-    capacity_match_experiment = pybamm.Experiment(
-        [
-            ("Rest for 1 seconds", charge_step, hold_step),
-            ("Rest for 3600 seconds",),
-            (discharge_step,),
-            ("Rest for 1 seconds",),
-        ],
-        period="1 second",
-    )
-
-    # Use simplified degradation for faster calibration
-    calibration_options = {
-        **model_options,
-        "particle mechanics": "none",
-        "SEI on cracks": "false",
-        "loss of active material": "none",
-    }
-    model_capacity = pybamm.lithium_ion.DFN(options=calibration_options)
-
-    MAX_ITERATIONS = 20
-    TOLERANCE = 0.0001  # 0.01% tolerance
-
-    print(f"Convergence tolerance: {TOLERANCE*100:.3f}%")
-    print("-" * 80)
-
-    for iteration in range(MAX_ITERATIONS):
-        sim_capacity = pybamm.Simulation(
-            model_capacity,
-            experiment=capacity_match_experiment,
-            parameter_values=param,
-        )
-
-        try:
-            sol_capacity = sim_capacity.solve(
-                solver=pybamm.IDAKLUSolver(atol=1e-3, rtol=1e-3)
-            )
-        except pybamm.SolverError as e:
-            print(f"Capacity calibration failed: {e}")
-            return param, False
-
-        if not hasattr(sol_capacity, "cycles") or len(sol_capacity.cycles) < 4:
-            print(f"Warning: Insufficient cycles: {len(sol_capacity.cycles)}")
-            return param, False
-
-        # Extract discharge capacity from cycle 3 (index 2)
-        discharge_cycle = sol_capacity.cycles[2]
-        discharge_capacity = float(
-            discharge_cycle["Discharge capacity [A.h]"].entries[-1]
-            - discharge_cycle["Discharge capacity [A.h]"].entries[0]
-        )
-
-        scale_factor = discharge_capacity / target_capacity_Ah
-        error_percent = abs(1 - scale_factor) * 100
-
-        print(
-            f"Iteration {iteration+1:2d}: Capacity = {discharge_capacity:6.2f} Ah, "
-            f"Error = {error_percent:6.3f}%"
-        )
-
-        # Check convergence
-        if 1 - TOLERANCE < scale_factor < 1 + TOLERANCE:
-            print("-" * 80)
-            print(f"✓ Converged after {iteration+1} iterations!")
-            print(f"  Final capacity: {discharge_capacity:.2f} Ah")
-            print(f"  Target capacity: {target_capacity_Ah:.2f} Ah")
-            print(f"  Error: {error_percent:.4f}%")
-
-            # Update OCV parameters from calibration
-            ocv_100 = float(sol_capacity.cycles[1]["Terminal voltage [V]"].entries[-1])
-            ocv_0 = float(sol_capacity.cycles[3]["Terminal voltage [V]"].entries[-1])
-
-            param.update(
-                {
-                    "Open-circuit voltage at 100% SOC [V]": ocv_100,
-                    "Open-circuit voltage at 0% SOC [V]": ocv_0,
-                },
-                check_already_exists=False,
-            )
-            print(f"  OCV at 100% SoC: {ocv_100:.3f}V")
-            print(f"  OCV at 0% SoC: {ocv_0:.3f}V")
-            print("=" * 80)
-            return param, True
-
-        # Adjust electrode width for next iteration
-        new_width = param["Electrode width [m]"] / scale_factor
-        param.update(
-            {
-                "Electrode width [m]": new_width,
-                "Nominal cell capacity [A.h]": discharge_capacity / scale_factor,
-            },
-            check_already_exists=False,
-        )
-
-    print("-" * 80)
-    print(f"⚠ Warning: Did not converge after {MAX_ITERATIONS} iterations")
-    print(f"  Final error: {error_percent:.3f}%")
-    print("=" * 80)
-    return param, False
-
-
 def run_calendar_degradation(
     cell_design: Dict,
     sim_config: Dict,
@@ -685,9 +548,11 @@ def run_calendar_degradation(
     try:
         # Build model options and parameters (consolidated in single call)
         default_params, model_options, calibration_success = _build_pybamm_params(
-            cell_design, sim_config, skip_calibration=sim_config.get("skip_capacity_calibration", False)
+            cell_design,
+            sim_config,
+            skip_calibration=sim_config.get("skip_capacity_calibration", False),
         )
-        
+
         if not calibration_success and not sim_config.get("skip_capacity_calibration"):
             print("⚠ Warning: Capacity calibration did not fully converge")
             print("  Continuing with best-fit parameters...")
