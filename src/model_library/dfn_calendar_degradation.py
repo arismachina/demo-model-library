@@ -587,9 +587,6 @@ def calibrate_capacity(
 
 
 def run_calendar_degradation(
-
-
-def run_calendar_degradation(
     cell_design: Dict,
     sim_config: Dict,
 ) -> Dict[str, Any]:
