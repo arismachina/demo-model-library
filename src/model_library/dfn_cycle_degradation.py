@@ -183,6 +183,7 @@ def _build_pybamm_params(
         print(f"Convergence tolerance: {TOLERANCE*100:.3f}%")
         print("-" * 80)
 
+        calibration_success = False
         for iteration in range(MAX_ITERATIONS):
             sim_capacity = pybamm.Simulation(
                 model_capacity,
@@ -195,7 +196,7 @@ def _build_pybamm_params(
                     solver=pybamm.IDAKLUSolver(atol=1e-3, rtol=1e-3)
                 )
             except pybamm.SolverError as e:
-                print(f"⚠ Calibration solver error: {e}")
+                print(f"⚠ Iteration {iteration+1}: Solver error - {str(e)[:80]}")
                 calibration_success = False
                 break
 
