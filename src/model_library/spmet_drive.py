@@ -339,7 +339,7 @@ def _run_pybamm_spmet_drivecycle(
         print(f"  Custom terminations: {len(termination_conditions)}")
 
     period = simulation_config.get("period")
-    experiment = pybamm.Experiment([c_rate_step], period=period)
+    experiment = pybamm.Experiment([drive_cycle_step], period=period)
 
     # Create model
     model = pybamm.lithium_ion.SPMe(options=model_options)
