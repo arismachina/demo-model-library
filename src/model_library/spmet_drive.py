@@ -536,13 +536,19 @@ def estimate_speed_from_power(
         Tuple of (speed_m_s array, metadata dict)
     """
     # Extract parameters with defaults
-    weight_kg = vehicle_params["weight_kg"]
-    Cd = vehicle_params.get("drag_coefficient")
-    A = vehicle_params.get("frontal_area_m2")
-    eta = vehicle_params.get("drivetrain_efficiency")
-    rho = vehicle_params.get("air_density_kg_m3")
+    weight_kg = vehicle_params.get("weight_kg", 2000)
+    Cd = vehicle_params.get("drag_coefficient", 0.3)
+    A = vehicle_params.get("frontal_area_m2", 2.0)
+    eta = vehicle_params.get("drivetrain_efficiency", 0.85)
+    rho = vehicle_params.get("air_density_kg_m3", 1.225)
     Crr = vehicle_params.get("rolling_resistance", 0.01)
     L_D = vehicle_params.get("lift_to_drag", None)
+
+    # Ensure all parameters are valid
+    if Cd is None or A is None or rho is None:
+        raise ValueError(
+            f"Missing required vehicle parameters: Cd={Cd}, A={A}, rho={rho}"
+        )
 
     g = 9.81  # m/s²
     W = weight_kg * g  # Weight force [N]
@@ -787,50 +793,12 @@ def run_spmet_drivecycle(
     cycle_duration_s = summary["duration_s"]
     label = drive_cycle.get("label", "drive_cycle")
 
-    # Check for vehicle parameters to calculate speed from power
-    # Support both new individual params and legacy vehicle_params dict
-    vehicle_params = simulation_config.get("vehicle_params")
-    has_vehicle_params = (
-        vehicle_params is not None or "vehicle_weight_kg" in simulation_config
-    )
-
-    # Build vehicle_params dict from individual parameters if provided
-    if vehicle_params is None and "vehicle_weight_kg" in simulation_config:
-        vehicle_params = {
-            "weight_kg": simulation_config["vehicle_weight_kg"],
-            "drag_coefficient": simulation_config.get("vehicle_drag_coefficient", 0.3),
-            "frontal_area_m2": simulation_config.get("vehicle_frontal_area_m2", 2.0),
-            "rolling_resistance": simulation_config.get(
-                "vehicle_rolling_resistance", 0.01
-            ),
-            "drivetrain_efficiency": simulation_config.get(
-                "vehicle_drivetrain_efficiency", 0.85
-            ),
-        }
-
     speed_timeseries = None
     speed_metadata = None
-    physics_distance_km = None
 
     # Determine cycle distance from drive_cycle data
     cycle_distance_km = drive_cycle.get("distance_km")
     is_aerial = label.startswith("Aero") if cycle_distance_km is None else False
-
-    # Always calculate speed from vehicle physics when vehicle_params provided
-    if has_vehicle_params and vehicle_params is not None:
-        power_for_vehicle = pack_power_W if pack_power_W is not None else sim_power
-        vehicle_type = "aircraft" if is_aerial else "ground"
-        speed_timeseries, speed_metadata = estimate_speed_from_power(
-            power_for_vehicle, vehicle_params, vehicle_type
-        )
-
-        speed_mid = (speed_timeseries[:-1] + speed_timeseries[1:]) / 2
-        distance_m = float(np.sum(speed_mid * dt))
-        physics_distance_km = distance_m / 1000
-
-        # Use physics-based distance if not provided in drive_cycle
-        if cycle_distance_km is None:
-            cycle_distance_km = physics_distance_km
 
     if cycle_distance_km is None:
         cycle_distance_km = DRIVE_CYCLE_DISTANCES.get(label)
