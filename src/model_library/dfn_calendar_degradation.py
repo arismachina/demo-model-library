@@ -168,11 +168,9 @@ def build_dfn_calendar_degradation_params(
         "Ambient temperature [K]": ambient_temp_K,
         "Initial temperature [K]": ambient_temp_K,
         "Total heat transfer coefficient [W.m-2.K-1]": sim_config.get(
-            "total_heat_transfer_coefficient_W_m2K"
+            "total_heat_transfer_coefficient_W_m2K", 10.0
         ),
-        "Cell cooling surface area [m2]": sim_config.get(
-            "cooling_surface_area_m2"
-        ),
+        "Cell cooling surface area [m2]": sim_config.get("cooling_surface_area_m2", 0.01),
         "Cell volume [m3]": cell_design["cell_volume"]["value"] / 1000.0,
     }
 
@@ -186,7 +184,7 @@ def build_dfn_calendar_degradation_params(
             "lower_voltage_cutoff_V",
             cell_design.get("lower_voltage_cutoff", {}).get("value"),
         ),
-        "Contact resistance [Ohm]": sim_config.get("contact_resistance_Ohm"),
+        "Contact resistance [Ohm]": sim_config.get("contact_resistance_Ohm", 0.0001),
     }
 
     # Degradation parameters (SEI growth, particle mechanics, LAM)
