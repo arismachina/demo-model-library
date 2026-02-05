@@ -28,16 +28,35 @@ import json
 from pathlib import Path
 
 
-def build_dfn_calendar_model_options() -> Dict[str, Any]:
+def _build_pybamm_params(
+    cell_design: Dict, sim_config: Dict, skip_calibration: bool = False
+) -> Tuple[pybamm.ParameterValues, Dict[str, Any], bool]:
     """
-    Build model options for DFN calendar degradation simulation.
+    Build PyBaMM model options, parameters, and calibrate capacity (consolidated helper).
 
-    Calendar aging focuses on non-faradaic degradation processes that occur
-    during storage at open circuit or low current conditions.
+    Consolidates three setup steps into one:
+    1. Configure DFN model options (SEI, LAM, thermal, etc.)
+    2. Build parameter values with cell geometry, thermal, and degradation settings
+    3. Calibrate model capacity to match cell design (unless skipped)
+
+    Args:
+        cell_design: Cell design dictionary from manifest
+        sim_config: Simulation configuration dictionary
+        skip_calibration: If True, skip capacity calibration step
 
     Returns:
-        Dict with model options for DFN
+        Tuple of (param_values, model_options, calibration_success)
+        - param_values: PyBaMM ParameterValues object ready for simulation
+        - model_options: Dictionary of PyBaMM model options
+        - calibration_success: Boolean indicating if calibration converged (or was skipped)
     """
+    print("\n" + "=" * 80)
+    print("BUILDING PyBaMM PARAMETERS & OPTIONS")
+    print("=" * 80)
+
+    # ========================================================================
+    # STEP 1: Build model options for DFN with degradation
+    # ========================================================================
     model_options = {
         # Electrochemistry
         "calculate discharge energy": "true",
@@ -54,25 +73,15 @@ def build_dfn_calendar_model_options() -> Dict[str, Any]:
         "particle mechanics": ("swelling and cracking", "swelling only"),
         "loss of active material": "stress-driven",
     }
+    print(f"\n✓ Model options configured")
+    print(f"  - SEI model: {model_options['SEI']}")
+    print(f"  - Particle mechanics: {model_options['particle mechanics']}")
+    print(f"  - LAM model: {model_options['loss of active material']}")
 
-    return model_options
-
-
-def build_dfn_calendar_degradation_params(
-    cell_design: Dict,
-    sim_config: Dict,
-) -> pybamm.ParameterValues:
-    """
-    Build complete PyBaMM parameter set for DFN calendar degradation simulation.
-
-    Args:
-        cell_design: Cell design dictionary (from manifest)
-        sim_config: Simulation configuration with cell and thermal parameters
-
-    Returns:
-        PyBaMM ParameterValues object with all parameters
-    """
-    print("\nBuilding DFN calendar degradation parameters...")
+    # ========================================================================
+    # STEP 2: Build parameter values
+    # ========================================================================
+    print(f"\n✓ Building parameters...")
 
     # Use O'Kane2022 parameter set which includes comprehensive degradation models
     default_params = pybamm.ParameterValues("OKane2022")
@@ -299,11 +308,145 @@ def build_dfn_calendar_degradation_params(
 
     default_params.update(all_params, check_already_exists=False)
 
-    print(f"  Ambient temperature: {ambient_temp_C}°C ({ambient_temp_K}K)")
-    print(f"  Nominal capacity: {cell_nominal_capacity:.2f} Ah")
-    print(f"  ✓ DFN calendar degradation parameters built")
+    print(f"  - Ambient temperature: {ambient_temp_C}°C ({ambient_temp_K}K)")
+    print(f"  - Nominal capacity: {cell_nominal_capacity:.2f} Ah")
+    print(f"  ✓ Parameters built")
 
-    return default_params
+    # ========================================================================
+    # STEP 3: Calibrate capacity (unless explicitly skipped)
+    # ========================================================================
+    calibration_success = True
+
+    if not skip_calibration:
+        target_capacity_Ah = cell_design["nominal_capacity"]["value"]
+        upper_voltage = default_params["Upper voltage cut-off [V]"]
+        lower_voltage = default_params["Lower voltage cut-off [V]"]
+
+        print(f"\n" + "-" * 80)
+        print("CAPACITY CALIBRATION")
+        print("-" * 80)
+        print(f"Target capacity: {target_capacity_Ah:.2f} Ah")
+        print(f"Voltage range: {lower_voltage:.2f}V - {upper_voltage:.2f}V")
+
+        # Build calibration experiment (slow C/10 charge-discharge)
+        charge_step = f"Charge at {target_capacity_Ah * 0.1} A until {upper_voltage} V"
+        hold_step = f"Hold at {upper_voltage} V for 2 hours or until C/50"
+        discharge_step = f"Discharge at {target_capacity_Ah * 0.1} A for 15 hours or until {lower_voltage} V"
+
+        capacity_match_experiment = pybamm.Experiment(
+            [
+                ("Rest for 1 seconds", charge_step, hold_step),
+                ("Rest for 3600 seconds",),
+                (discharge_step,),
+                ("Rest for 1 seconds",),
+            ],
+            period="1 second",
+        )
+
+        # Use simplified degradation for faster calibration
+        calibration_options = {
+            **model_options,
+            "particle mechanics": "none",
+            "SEI on cracks": "false",
+            "loss of active material": "none",
+        }
+        model_capacity = pybamm.lithium_ion.DFN(options=calibration_options)
+
+        MAX_ITERATIONS = 20
+        TOLERANCE = 0.0001  # 0.01% tolerance
+
+        print(f"Convergence tolerance: {TOLERANCE*100:.3f}%")
+        print("-" * 80)
+
+        for iteration in range(MAX_ITERATIONS):
+            sim_capacity = pybamm.Simulation(
+                model_capacity,
+                experiment=capacity_match_experiment,
+                parameter_values=default_params,
+            )
+
+            try:
+                sol_capacity = sim_capacity.solve(
+                    solver=pybamm.IDAKLUSolver(atol=1e-3, rtol=1e-3)
+                )
+            except pybamm.SolverError as e:
+                print(f"⚠ Calibration solver error: {e}")
+                calibration_success = False
+                break
+
+            if not hasattr(sol_capacity, "cycles") or len(sol_capacity.cycles) < 4:
+                print(f"⚠ Warning: Insufficient cycles: {len(sol_capacity.cycles)}")
+                calibration_success = False
+                break
+
+            # Extract discharge capacity from cycle 3 (index 2)
+            discharge_cycle = sol_capacity.cycles[2]
+            discharge_capacity = float(
+                discharge_cycle["Discharge capacity [A.h]"].entries[-1]
+                - discharge_cycle["Discharge capacity [A.h]"].entries[0]
+            )
+
+            scale_factor = discharge_capacity / target_capacity_Ah
+            error_percent = abs(1 - scale_factor) * 100
+
+            print(
+                f"Iteration {iteration+1:2d}: Capacity = {discharge_capacity:6.2f} Ah, "
+                f"Error = {error_percent:6.3f}%"
+            )
+
+            # Check convergence
+            if 1 - TOLERANCE < scale_factor < 1 + TOLERANCE:
+                print("-" * 80)
+                print(f"✓ Converged after {iteration+1} iterations!")
+                print(f"  Final capacity: {discharge_capacity:.2f} Ah")
+                print(f"  Target capacity: {target_capacity_Ah:.2f} Ah")
+                print(f"  Error: {error_percent:.4f}%")
+
+                # Update OCV parameters from calibration
+                ocv_100 = float(
+                    sol_capacity.cycles[1]["Terminal voltage [V]"].entries[-1]
+                )
+                ocv_0 = float(
+                    sol_capacity.cycles[3]["Terminal voltage [V]"].entries[-1]
+                )
+
+                default_params.update(
+                    {
+                        "Open-circuit voltage at 100% SOC [V]": ocv_100,
+                        "Open-circuit voltage at 0% SOC [V]": ocv_0,
+                    },
+                    check_already_exists=False,
+                )
+                print(f"  OCV at 100% SoC: {ocv_100:.3f}V")
+                print(f"  OCV at 0% SoC: {ocv_0:.3f}V")
+                calibration_success = True
+                break
+
+            # Adjust electrode width for next iteration
+            new_width = default_params["Electrode width [m]"] / scale_factor
+            default_params.update(
+                {
+                    "Electrode width [m]": new_width,
+                    "Nominal cell capacity [A.h]": discharge_capacity / scale_factor,
+                },
+                check_already_exists=False,
+            )
+
+        if not calibration_success and iteration == MAX_ITERATIONS - 1:
+            print("-" * 80)
+            print(f"⚠ Warning: Did not converge after {MAX_ITERATIONS} iterations")
+            print(f"  Final error: {error_percent:.3f}%")
+            print("  Continuing with best-fit parameters...")
+
+    else:
+        print(
+            f"\n⚠ Skipping capacity calibration (using default O'Kane2022 parameters)"
+        )
+        print("  Note: Simulated capacity may not match nominal capacity")
+
+    print("=" * 80)
+
+    return default_params, model_options, calibration_success
 
 
 def calibrate_capacity(
@@ -444,6 +587,9 @@ def calibrate_capacity(
 
 
 def run_calendar_degradation(
+
+
+def run_calendar_degradation(
     cell_design: Dict,
     sim_config: Dict,
 ) -> Dict[str, Any]:
@@ -540,29 +686,14 @@ def run_calendar_degradation(
         print(f"  SoH threshold cutoff: {soh_threshold}%")
 
     try:
-        # Build model options
-        model_options = build_dfn_calendar_model_options()
-        print(f"\n✓ Model options configured")
-        print(f"  - SEI model: {model_options['SEI']}")
-        print(f"  - Particle mechanics: {model_options['particle mechanics']}")
-        print(f"  - LAM model: {model_options['loss of active material']}")
-
-        # Build parameters
-        default_params = build_dfn_calendar_degradation_params(cell_design, sim_config)
-
-        # Capacity calibration (unless explicitly skipped)
-        if not sim_config.get("skip_capacity_calibration"):
-            default_params, calibration_success = calibrate_capacity(
-                cell_design, default_params, model_options
-            )
-            if not calibration_success:
-                print("⚠ Warning: Capacity calibration did not fully converge")
-                print("  Continuing with best-fit parameters...")
-        else:
-            print(
-                "\n⚠ Skipping capacity calibration (using default O'Kane2022 parameters)"
-            )
-            print("  Note: Simulated capacity may not match nominal capacity\n")
+        # Build model options and parameters (consolidated in single call)
+        default_params, model_options, calibration_success = _build_pybamm_params(
+            cell_design, sim_config, skip_calibration=sim_config.get("skip_capacity_calibration", False)
+        )
+        
+        if not calibration_success and not sim_config.get("skip_capacity_calibration"):
+            print("⚠ Warning: Capacity calibration did not fully converge")
+            print("  Continuing with best-fit parameters...")
 
         # Create DFN model
         print(f"\n✓ Building DFN model...")
