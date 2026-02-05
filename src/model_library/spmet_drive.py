@@ -72,12 +72,16 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
         "Positive electrode density [kg.m-3]": (
             pos_electrode["coating"]["density"]["value"] * 1000
         ),
+        "Positive electrode specific heat capacity [J.kg-1.K-1]": 1466,  # LFP/NCA/LCO typical composite value
     }
 
     positive_cc_params = {
         "Positive current collector thickness [m]": (
             pos_electrode["foil"]["thickness"]["value"] / 1e6
         ),
+        "Positive current collector conductivity [S.m-1]": 5.96e7,  # Copper
+        "Positive current collector density [kg.m-3]": 8900,  # Copper density
+        "Positive current collector specific heat capacity [J.kg-1.K-1]": 385,  # Copper specific heat
     }
 
     # Negative electrode parameters
@@ -94,12 +98,16 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
         "Negative electrode density [kg.m-3]": (
             neg_electrode["coating"]["density"]["value"] * 1000
         ),
+        "Negative electrode specific heat capacity [J.kg-1.K-1]": 1437,  # Graphite typical value
     }
 
     negative_cc_params = {
         "Negative current collector thickness [m]": (
             neg_electrode["foil"]["thickness"]["value"] / 1e6
         ),
+        "Negative current collector conductivity [S.m-1]": 5.96e7,  # Copper
+        "Negative current collector density [kg.m-3]": 8900,  # Copper density
+        "Negative current collector specific heat capacity [J.kg-1.K-1]": 385,  # Copper specific heat
     }
 
     # Separator parameters
@@ -110,6 +118,7 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
         "Separator density [kg.m-3]": (
             separator["material"]["physical_properties"]["density"]["value"] * 1000
         ),
+        "Separator specific heat capacity [J.kg-1.K-1]": 1200,  # Typical polymer separator value
     }
 
     # Thermal parameters
@@ -224,11 +233,7 @@ def _build_pybamm_params(cell_design: dict, simulation_config: dict) -> tuple:
             check_already_exists=False,
         )
 
-    return all_results
-
-
-# Backward compatibility aliases
-run_drive_cycle = run_spmet_drivecycle
+    return default_params, model_options
 
 
 def _run_pybamm_spmet_drivecycle(
@@ -333,8 +338,8 @@ def _run_pybamm_spmet_drivecycle(
     if termination_conditions:
         print(f"  Custom terminations: {len(termination_conditions)}")
 
-    period = simulation_config.get("period", "1 second")
-    experiment = pybamm.Experiment([drive_cycle_step], period=period)
+    period = simulation_config.get("period")
+    experiment = pybamm.Experiment([c_rate_step], period=period)
 
     # Create model
     model = pybamm.lithium_ion.SPMe(options=model_options)
@@ -373,7 +378,7 @@ def _run_pybamm_spmet_drivecycle(
         var_pts=var_pts,
     )
 
-    initial_soc = simulation_config.get("initial_soc", 0.8)
+    initial_soc = simulation_config.get("initial_soc")
 
     try:
         print(f"  Running simulation (initial SOC: {initial_soc*100:.0f}%)...")
@@ -471,7 +476,7 @@ def _run_pybamm_spmet_drivecycle(
         except (KeyError, AttributeError):
             pass
 
-        n_points = len(result.get("time_s", []))
+        n_points = len(result.get("time_s"))
         print(f"  Completed: {n_points} data points")
         if termination_reason != "completed" and termination_reason != "final time":
             print(f"  Termination: {termination_reason}")
@@ -532,10 +537,10 @@ def estimate_speed_from_power(
     """
     # Extract parameters with defaults
     weight_kg = vehicle_params["weight_kg"]
-    Cd = vehicle_params.get("drag_coefficient", 0.3)
-    A = vehicle_params.get("frontal_area_m2", 2.0)
-    eta = vehicle_params.get("drivetrain_efficiency", 0.85)
-    rho = vehicle_params.get("air_density_kg_m3", 1.225)
+    Cd = vehicle_params.get("drag_coefficient")
+    A = vehicle_params.get("frontal_area_m2")
+    eta = vehicle_params.get("drivetrain_efficiency")
+    rho = vehicle_params.get("air_density_kg_m3")
     Crr = vehicle_params.get("rolling_resistance", 0.01)
     L_D = vehicle_params.get("lift_to_drag", None)
 

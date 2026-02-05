@@ -26,38 +26,42 @@ def get_cell_capacity(cell_design: dict) -> dict:
             - np_ratio: N/P ratio (negative/positive capacity ratio)
     """
     capacities = {}
-    jelly_roll = cell_design.get("jelly_roll", {})
-    jelly_roll_count = jelly_roll.get("count", {}).get("value", 1)
+    jelly_roll = cell_design.get("jelly_roll")
+    jelly_roll_count = jelly_roll.get("count").get("value")
 
     for elec_type in ["positive_electrode", "negative_electrode"]:
-        electrode = cell_design.get(elec_type, {})
+        electrode = cell_design.get(elec_type)
         if not electrode:
             capacities[elec_type] = 0.0
             continue
 
-        coating = electrode.get("coating", {})
+        coating = electrode.get("coating")
         if not coating:
             capacities[elec_type] = 0.0
             continue
 
-        formulation = coating.get("formulation", {})
-        mass_loading_mg_cm2 = coating.get("mass_loading", {}).get("value", 0.0)
-        num_coated_sides = coating.get("count", {}).get("value", 1)
+        formulation = coating.get("formulation")
+        mass_loading_mg_cm2 = coating.get("mass_loading").get("value")
+        # Check if coating has count field, otherwise assume double-sided (2)
+        coating_count = coating.get("count")
+        num_coated_sides = coating_count.get("value") if coating_count else 2
 
         # Get specific capacity (mAh/g)
         specific_capacity_mAh_g = 0.0
         for key in formulation:
             if "active_material" in key and not key.endswith("_mass_fraction"):
                 mass_fraction_key = f"{key}_mass_fraction"
-                mass_fraction = formulation.get(mass_fraction_key, {}).get("value", 0.0)
-                specific_capacity = formulation[key].get("specific_capacity", {}).get("value", 0.0)
+                mass_fraction = formulation.get(mass_fraction_key).get("value")
+                specific_capacity = (
+                    formulation[key].get("specific_capacity").get("value")
+                )
                 specific_capacity_mAh_g += specific_capacity * mass_fraction
 
         # Electrode dimensions and count
-        width = electrode.get("width", {}).get("value", 0.0)
-        height = electrode.get("height", {}).get("value", 0.0)
+        width = electrode.get("width").get("value")
+        height = electrode.get("height").get("value")
         electrode_area_cm2 = (width / 10.0) * (height / 10.0)
-        electrode_count = electrode.get("count", {}).get("value", 1)
+        electrode_count = electrode.get("count").get("value")
 
         # Calculate capacity in Ah
         capacity_mAh = (

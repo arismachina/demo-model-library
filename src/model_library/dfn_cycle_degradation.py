@@ -61,7 +61,7 @@ def build_dfn_cycle_degradation_params(
     param = pybamm.ParameterValues("OKane2022")
 
     # Ambient temperature
-    ambient_temp_C = sim_config.get("ambient_temperature_C", 25)
+    ambient_temp_C = sim_config.get("ambient_temperature_C")
     ambient_temp_K = ambient_temp_C + 273.15
     print(f"  Ambient temperature: {ambient_temp_C}°C ({ambient_temp_K}K)")
 
@@ -81,9 +81,7 @@ def build_dfn_cycle_degradation_params(
     param.update(
         {
             "Nominal cell capacity [A.h]": nominal_capacity_Ah,
-            "Contact resistance [Ohm]": sim_config.get(
-                "contact_resistance_Ohm", 0.0001
-            ),
+            "Contact resistance [Ohm]": sim_config.get("contact_resistance_Ohm"),
         }
     )
 
@@ -91,19 +89,17 @@ def build_dfn_cycle_degradation_params(
     param.update(
         {
             "Total heat transfer coefficient [W.m-2.K-1]": sim_config.get(
-                "total_heat_transfer_coefficient_W_m2K", 10
+                "total_heat_transfer_coefficient_W_m2K"
             ),
-            "Cell cooling surface area [m2]": sim_config.get(
-                "cooling_surface_area_m2", 0.01
-            ),
+            "Cell cooling surface area [m2]": sim_config.get("cooling_surface_area_m2"),
         }
     )
 
     # Voltage cutoffs (use sim_config or defaults)
     param.update(
         {
-            "Upper voltage cut-off [V]": sim_config.get("upper_voltage_cutoff_V", 4.2),
-            "Lower voltage cut-off [V]": sim_config.get("lower_voltage_cutoff_V", 2.5),
+            "Upper voltage cut-off [V]": sim_config.get("upper_voltage_cutoff_V"),
+            "Lower voltage cut-off [V]": sim_config.get("lower_voltage_cutoff_V"),
         }
     )
 
@@ -301,7 +297,7 @@ def run_cycle_degradation(cell_design: Dict, sim_config: Dict) -> Dict[str, Any]
     """
 
     # Extract simulation parameters
-    num_cycles = sim_config.get("num_cycles", 100)
+    num_cycles = sim_config.get("num_cycles")
 
     print("=" * 80)
     print("DFN CYCLE DEGRADATION SIMULATION")
@@ -315,12 +311,12 @@ def run_cycle_degradation(cell_design: Dict, sim_config: Dict) -> Dict[str, Any]
     print(f"  ✓ Throughput energy limit: {pybamm.settings.max_y_value / 1000:.0f} kWh")
 
     # Extract simulation parameters
-    num_cycles = sim_config.get("num_cycles", 100)
-    discharge_c_rate = sim_config.get("discharge_c_rate", 1.0)
-    charge_c_rate = sim_config.get("charge_c_rate", 0.5)
-    initial_soc = sim_config.get("initial_soc", 1.0)
-    ambient_temp_C = sim_config.get("ambient_temperature_C", 25)
-    soh_threshold = sim_config.get("soh_threshold", None)
+    num_cycles = sim_config.get("num_cycles")
+    discharge_c_rate = sim_config.get("discharge_c_rate")
+    charge_c_rate = sim_config.get("charge_c_rate")
+    initial_soc = sim_config.get("initial_soc")
+    ambient_temp_C = sim_config.get("ambient_temperature_C")
+    soh_threshold = sim_config.get("soh_threshold")
 
     print(f"\nCycling parameters:")
     print(f"  Number of cycles: {num_cycles}")
@@ -343,7 +339,7 @@ def run_cycle_degradation(cell_design: Dict, sim_config: Dict) -> Dict[str, Any]
         default_params = build_dfn_cycle_degradation_params(cell_design, sim_config)
 
         # Capacity calibration (unless explicitly skipped)
-        if not sim_config.get("skip_capacity_calibration", False):
+        if not sim_config.get("skip_capacity_calibration"):
             default_params, calibration_success = calibrate_capacity(
                 cell_design, default_params, model_options
             )
@@ -397,12 +393,12 @@ def run_cycle_degradation(cell_design: Dict, sim_config: Dict) -> Dict[str, Any]
             # Discharge step
             experiment_steps.append(
                 f"Discharge at {discharge_current} A until "
-                f"{sim_config.get('lower_voltage_cutoff_V', 2.5)} V"
+                f"{sim_config.get('lower_voltage_cutoff_V')} V"
             )
             # Charge step
             experiment_steps.append(
                 f"Charge at {charge_current} A until "
-                f"{sim_config.get('upper_voltage_cutoff_V', 4.2)} V"
+                f"{sim_config.get('upper_voltage_cutoff_V')} V"
             )
 
         experiment = pybamm.Experiment(
@@ -442,8 +438,8 @@ def run_cycle_degradation(cell_design: Dict, sim_config: Dict) -> Dict[str, Any]
             f"   Cell capacity: {nominal_capacity_Ah:.1f} Ah | C-rates: {discharge_c_rate}C disch, {charge_c_rate}C charge"
         )
         solver = pybamm.IDAKLUSolver(
-            atol=sim_config.get("solver_atol", 1e-4),
-            rtol=sim_config.get("solver_rtol", 1e-4),
+            atol=sim_config.get("solver_atol"),
+            rtol=sim_config.get("solver_rtol"),
         )
 
         solution = sim.solve(initial_soc=initial_soc, solver=solver)

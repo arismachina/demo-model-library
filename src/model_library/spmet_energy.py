@@ -26,6 +26,8 @@ def _build_pybamm_params(
     default_params = pybamm.ParameterValues({})
 
     print("\nBuilding model parameters from manifest...")
+    print(f"  Cell: {cell_design.get('name')}")
+    print(f"  Nominal capacity: {cell_design.get('nominal_capacity').get('value')} Ah")
 
     if (
         cell_design["positive_electrode"]["coating"]["formulation"][
@@ -153,8 +155,18 @@ def _build_pybamm_params(
         "contact resistance": "true",
     }
 
+    print("\n[DEBUG] About to enter capacity calibration section")
+    import sys
+
+    sys.stdout.flush()
+
     # ========== CAPACITY CALIBRATION ==========
     target_capacity_Ah = cell_design["nominal_capacity"]["value"]
+
+    print("\n" + "=" * 80)
+    print("CAPACITY CALIBRATION")
+    print("=" * 80)
+    print(f"Target capacity: {target_capacity_Ah:.2f} Ah")
 
     charge_step = (
         f"Charge at 0.1C until {cell_design['upper_voltage_cutoff']['value']} V"
@@ -182,6 +194,8 @@ def _build_pybamm_params(
     TOLERANCE = 0.0001
 
     for iteration in range(MAX_ITERATIONS):
+        print(f"  Iteration {iteration + 1}/{MAX_ITERATIONS}...", end=" ", flush=True)
+
         sim_capacity = pybamm.Simulation(
             model_capacity,
             experiment=capacity_match_experiment,
@@ -196,6 +210,7 @@ def _build_pybamm_params(
             raise
 
         if not hasattr(sol_capacity, "cycles") or len(sol_capacity.cycles) < 4:
+            print("Insufficient cycles")
             break
 
         discharge_cycle = sol_capacity.cycles[2]
@@ -207,6 +222,7 @@ def _build_pybamm_params(
         scale_factor = discharge_capacity / target_capacity_Ah
 
         if 1 - TOLERANCE < scale_factor < 1 + TOLERANCE:
+            print(f"CONVERGED (scale={scale_factor:.6f})")
             ocv_100 = float(sol_capacity.cycles[1]["Terminal voltage [V]"].entries[-1])
             ocv_0 = float(sol_capacity.cycles[3]["Terminal voltage [V]"].entries[-1])
 
@@ -227,6 +243,7 @@ def _build_pybamm_params(
             },
             check_already_exists=False,
         )
+        print(f"Capacity: {discharge_capacity:.2f} Ah (scale={scale_factor:.6f})")
 
     return default_params, model_options
 
@@ -309,7 +326,7 @@ def run_spmet_energy(
     power_profile = simulation_config["power_profile"]
     time_s = np.array(power_profile["time_s"])
     power_W = np.array(power_profile["power_W"])
-    label = power_profile.get("label", "energy_analysis")
+    label = power_profile.get("label")
 
     print("\n" + "=" * 80)
     print("RUNNING ENERGY ANALYSIS")
@@ -323,7 +340,7 @@ def run_spmet_energy(
     power_data = np.column_stack((time_s, power_W))
     power_step = pybamm.step.power(power_data, duration=time_s[-1])
 
-    period = simulation_config.get("period", "1 second")
+    period = simulation_config.get("period")
     experiment = pybamm.Experiment([power_step], period=period)
 
     # Setup solver with overpotential variables
@@ -367,7 +384,7 @@ def run_spmet_energy(
         var_pts=var_pts,
     )
 
-    initial_soc = simulation_config.get("initial_soc", 0.8)
+    initial_soc = simulation_config.get("initial_soc")
 
     try:
         print(f"  Running simulation (initial SOC: {initial_soc*100:.0f}%)...")

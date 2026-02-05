@@ -306,13 +306,13 @@ def run_spmet_fastcharge(
 
     # Get configuration
     c_rate = simulation_config["c_rate"]
-    anode_threshold = simulation_config.get("anode_potential_threshold_V", 0.02)
+    anode_threshold = simulation_config.get("anode_potential_threshold_V")
     temp_threshold = simulation_config.get("jelly_roll_temperature_threshold_K")
     upper_voltage = simulation_config["upper_voltage_cutoff"]
-    cv_termination = simulation_config.get("cv_termination_c_rate", 0.05)
-    max_time_s = simulation_config.get("max_charge_time_s", 3600)
-    initial_soc = simulation_config.get("initial_soc", 0.1)
-    period = simulation_config.get("period", "1 second")
+    cv_termination = simulation_config.get("cv_termination_c_rate")
+    max_time_s = simulation_config.get("max_charge_time_s")
+    initial_soc = simulation_config.get("initial_soc")
+    period = simulation_config.get("period")
 
     print("\n" + "=" * 80)
     print("RUNNING FAST CHARGE (ANODE-RIDING)")

@@ -302,9 +302,9 @@ def run_spmet(
 
     # Convert old-style config (c_rate, duration_s, direction) to new experiments format
     if "experiments" not in simulation_config and "c_rate" in simulation_config:
-        c_rate = simulation_config.get("c_rate", 1.0)
-        duration_s = simulation_config.get("duration_s", 30)
-        direction = simulation_config.get("direction", "discharge")
+        c_rate = simulation_config.get("c_rate")
+        duration_s = simulation_config.get("duration_s")
+        direction = simulation_config.get("direction")
 
         if direction == "discharge":
             exp_str = f"Discharge at {c_rate}C for {duration_s} seconds"
@@ -323,7 +323,7 @@ def run_spmet(
 
     # Get experiments from config
     experiments = simulation_config.get("experiments")
-    experiment_labels = simulation_config.get("experiment_labels", [])
+    experiment_labels = simulation_config.get("experiment_labels")
 
     if not experiments:
         raise ValueError("No experiments provided in simulation_config['experiments']")
@@ -357,8 +357,8 @@ def run_spmet(
         output_variables=output_vars + overpotential_vars,
     )
 
-    initial_soc = simulation_config.get("initial_soc", 0.8)
-    period = simulation_config.get("period", "1 second")
+    initial_soc = simulation_config.get("initial_soc")
+    period = simulation_config.get("period")
     all_results = []
 
     # ========== EXPERIMENT MODE ==========
@@ -375,11 +375,11 @@ def run_spmet(
         print(f"  Experiment: {exp_str[:60]}{'...' if len(exp_str) > 60 else ''}")
 
         # Get thresholds from config
-        anode_threshold = simulation_config.get("anode_potential_threshold_V", 0.02)
+        anode_threshold = simulation_config.get("anode_potential_threshold_V")
         temp_threshold = simulation_config.get("jelly_roll_temperature_threshold_K")
         upper_voltage = simulation_config["upper_voltage_cutoff"]
         lower_voltage = simulation_config["lower_voltage_cutoff"]
-        max_time_s = simulation_config.get("max_charge_time_s", 3600)
+        max_time_s = simulation_config.get("max_charge_time_s")
 
         # Define cutoff functions
         def anode_potential_cutoff(variables):

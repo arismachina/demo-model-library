@@ -295,7 +295,7 @@ def run_spmet_dcir(
     if kpis is None:
         return {"success": False, "error": "kpis is None"}
 
-    nominal_capacity = kpis.get("nominal_capacity", {}).get("value")
+    nominal_capacity = kpis.get("nominal_capacity").get("value")
 
     if nominal_capacity is None:
         return {
@@ -330,15 +330,15 @@ def run_spmet_dcir(
     if "cell_volume" in cell_design:
         cell_vol_m3 = cell_design["cell_volume"]["value"] / 1000.0
     else:
-        dims = cell_design.get("cell_dimensions", {})
-        h_mm = dims.get("height", {}).get("value", 82.0)
-        w_mm = dims.get("width", {}).get("value", 280.0)
-        t_mm = dims.get("thickness", {}).get("value", 63.0)
+        dims = cell_design.get("cell_dimensions")
+        h_mm = dims.get("height").get("value")
+        w_mm = dims.get("width").get("value")
+        t_mm = dims.get("thickness").get("value")
         cell_vol_m3 = (h_mm * w_mm * t_mm) / 1e9
 
     # Get voltage cutoffs from cell design
-    upper_voltage = cell_design.get("upper_voltage_cutoff", {}).get("value", 4.2)
-    lower_voltage = cell_design.get("lower_voltage_cutoff", {}).get("value", 2.5)
+    upper_voltage = cell_design.get("upper_voltage_cutoff").get("value")
+    lower_voltage = cell_design.get("lower_voltage_cutoff").get("value")
 
     # Build simulation config
     simulation_config = {
@@ -454,6 +454,14 @@ def run_spmet_dcir(
         except (KeyError, AttributeError):
             ohmic_overpotential = np.zeros_like(time_s)
 
+        # Ensure all arrays are 1D and properly shaped
+        time_s = np.atleast_1d(time_s).ravel()
+        voltage_V = np.atleast_1d(voltage_V).ravel()
+        reaction_overpotential = np.atleast_1d(reaction_overpotential).ravel()
+        concentration_overpotential = np.atleast_1d(concentration_overpotential).ravel()
+        sei_overpotential = np.atleast_1d(sei_overpotential).ravel()
+        ohmic_overpotential = np.atleast_1d(ohmic_overpotential).ravel()
+
         # Calculate DCIR at requested time points
         v_rest = voltage_V[0]
         i_amplitude = nominal_capacity * c_rate
@@ -467,10 +475,13 @@ def run_spmet_dcir(
 
         for t_point in requested_points:
             # Find index closest to the requested time point relative to start
-            t_idx = np.argmin(np.abs(time_s - time_s[0] - t_point))
-            v_pulse = voltage_V[t_idx]
+            t_idx_raw = np.argmin(np.abs(time_s - time_s[0] - t_point))
 
-            # DCIR [Ohm] = (V_rest - V_pulse) / I + R_contact
+            # Ensure index is within bounds (handle case where requested time exceeds simulation time)
+            max_idx = len(time_s) - 1
+            t_idx = int(np.clip(t_idx_raw, 0, max_idx))
+
+            v_pulse = voltage_V[t_idx]
             dcir_ohm = (v_rest - v_pulse) / i_amplitude + contact_resistance
             dcir_mOhm[t_point] = float(dcir_ohm * 1000)
 
@@ -531,7 +542,7 @@ def _run_pybamm_spmet_dcir(
     Returns:
         Dictionary with surface_data containing DCIR at all operating points
     """
-    nominal_capacity = kpis.get("nominal_capacity", {}).get("value")
+    nominal_capacity = kpis.get("nominal_capacity").get("value")
 
     # Build PyBaMM parameters from cell design (done once)
 
@@ -620,8 +631,8 @@ def _run_pybamm_spmet_dcir(
     }
 
     # Get voltage cutoffs from cell design
-    upper_voltage = cell_design.get("upper_voltage_cutoff", {}).get("value", 4.2)
-    lower_voltage = cell_design.get("lower_voltage_cutoff", {}).get("value", 2.5)
+    upper_voltage = cell_design.get("upper_voltage_cutoff").get("value")
+    lower_voltage = cell_design.get("lower_voltage_cutoff").get("value")
 
     # Thermal parameters (will be updated per temperature)
     # Calculate cell volume from dimensions if not directly available
@@ -629,10 +640,10 @@ def _run_pybamm_spmet_dcir(
         cell_vol_m3 = cell_design["cell_volume"]["value"] / 1000.0
     else:
         # Calculate from dimensions: height × width × thickness (in mm³ → m³)
-        dims = cell_design.get("cell_dimensions", {})
-        h_mm = dims.get("height", {}).get("value", 82.0)
-        w_mm = dims.get("width", {}).get("value", 280.0)
-        t_mm = dims.get("thickness", {}).get("value", 63.0)
+        dims = cell_design.get("cell_dimensions")
+        h_mm = dims.get("height").get("value")
+        w_mm = dims.get("width").get("value")
+        t_mm = dims.get("thickness").get("value")
         cell_vol_m3 = (h_mm * w_mm * t_mm) / 1e9  # mm³ to m³
 
     thermal_params = {
@@ -823,7 +834,11 @@ def _run_pybamm_spmet_dcir(
 
                     dcir_mOhm = {}
                     for t_point in requested_points:
-                        t_idx = np.argmin(np.abs(time_s - time_s[0] - t_point))
+                        t_idx_raw = np.argmin(np.abs(time_s - time_s[0] - t_point))
+
+                        # Ensure index is within bounds
+                        t_idx = int(np.clip(t_idx_raw, 0, len(time_s) - 1))
+
                         actual_time = time_s[t_idx] - time_s[0]
 
                         if actual_time >= t_point * 0.9:
@@ -848,7 +863,7 @@ def _run_pybamm_spmet_dcir(
                     )
 
                     # Print 10s DCIR as summary
-                    dcir_10s = dcir_mOhm.get(10.0, np.nan)
+                    dcir_10s = dcir_mOhm.get(10.0)
                     if not np.isnan(dcir_10s):
                         print(
                             f"  SOC={soc*100:.0f}%, C={c_rate}C: DCIR@10s = {dcir_10s:.3f} mΩ"

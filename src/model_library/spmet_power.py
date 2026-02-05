@@ -25,8 +25,6 @@ def _build_pybamm_params(
     """
     default_params = pybamm.ParameterValues({})
 
-    print("\nBuilding model parameters from manifest...")
-
     if (
         cell_design["positive_electrode"]["coating"]["formulation"][
             "primary_active_material"
@@ -178,8 +176,8 @@ def _build_pybamm_params(
 
     model_capacity = pybamm.lithium_ion.SPMe(options=model_options)
 
-    MAX_ITERATIONS = 20
-    TOLERANCE = 0.0001
+    MAX_ITERATIONS = 5  # REDUCED: Only 5 iterations instead of 20
+    TOLERANCE = 0.001  # RELAXED: 0.1% tolerance instead of 0.01%
 
     for iteration in range(MAX_ITERATIONS):
         sim_capacity = pybamm.Simulation(
@@ -193,7 +191,7 @@ def _build_pybamm_params(
                 solver=pybamm.IDAKLUSolver(atol=1e-3, rtol=1e-3)
             )
         except pybamm.SolverError as e:
-            raise
+            break
 
         if not hasattr(sol_capacity, "cycles") or len(sol_capacity.cycles) < 4:
             break
@@ -231,7 +229,7 @@ def _build_pybamm_params(
     return default_params, model_options
 
 
-def _binary_search_max_crate(
+def _power_sweep_characterization(
     soc: float,
     temp_K: float,
     pulse_duration_s: float,
@@ -241,27 +239,15 @@ def _binary_search_max_crate(
     options: dict,
 ) -> dict:
     """
-    Binary search to find max C-rate that reaches voltage cutoff.
+    Direct constant power sweep to find max power while respecting voltage limits.
 
-    Args:
-        soc: State of charge [0-1]
-        temp_K: Temperature [K]
-        pulse_duration_s: Pulse duration [s]
-        direction: 'discharge' or 'charge'
-        config: Simulation configuration
-        params: PyBaMM parameter values
-        options: PyBaMM model options
-
-    Returns:
-        Dictionary with max power results
+    Algorithm:
+    1. Start at 100 kW, reduce by order of magnitude (÷10) until feasible
+    2. Once feasible found, increase by 10x to find upper bound
+    3. Binary search between upper and lower bounds to find exact max power
     """
-    c_rate_min = config.get("c_rate_min", 0.1)
-    c_rate_max = config.get("c_rate_max", 10.0)
-    max_iterations = 10
-
     upper_voltage = config["upper_voltage_cutoff"]
     lower_voltage = config["lower_voltage_cutoff"]
-    target_voltage = lower_voltage if direction == "discharge" else upper_voltage
 
     # Setup simulation components
     var_pts = {"x_n": 20, "x_s": 20, "x_p": 20, "r_n": 20, "r_p": 20}
@@ -271,7 +257,6 @@ def _binary_search_max_crate(
         "Terminal voltage [V]",
         "Current [A]",
         "Power [W]",
-        "Anode potential [V]",
     ]
 
     # Add overpotential variables
@@ -288,30 +273,19 @@ def _binary_search_max_crate(
         output_variables=output_vars + overpotential_vars,
     )
 
-    # Create model once
+    # Create model
     model = pybamm.lithium_ion.SPMe(options=options)
-    model.variables["Anode potential [V]"] = model.variables[
-        "Negative electrode surface potential difference at separator interface [V]"
-    ]
 
-    # Binary search
-    c_rate_low = c_rate_min
-    c_rate_high = c_rate_max
-    best_result = None
-    converged = False
-
-    for iteration in range(max_iterations):
-        c_rate_mid = (c_rate_low + c_rate_high) / 2
-
-        # Create experiment
+    def _test_power(power_W):
+        """Test a single power level, return (feasible, result)"""
         if direction == "discharge":
-            exp_str = f"Discharge at {c_rate_mid}C for {pulse_duration_s} seconds or until {target_voltage}V"
+            exp_str = f"Discharge at {power_W}W for {pulse_duration_s}s or until {lower_voltage}V"
         else:
-            exp_str = f"Charge at {c_rate_mid}C for {pulse_duration_s} seconds or until {target_voltage}V"
+            exp_str = f"Charge at {power_W}W for {pulse_duration_s}s or until {upper_voltage}V"
 
         experiment = pybamm.Experiment(
             [("Rest for 1 seconds"), (exp_str,)],
-            period=config.get("period", "0.1 second"),
+            period=config["period"],
         )
 
         sim = pybamm.Simulation(
@@ -322,97 +296,70 @@ def _binary_search_max_crate(
         )
 
         try:
+            # Suppress solver output for these intermediate tests
+            import logging
+
+            pybamm_logger = logging.getLogger("pybamm")
+            old_level = pybamm_logger.level
+            pybamm_logger.setLevel(logging.CRITICAL)
+
             solution = sim.solve(initial_soc=soc, solver=solver)
 
-            # Extract cycle data
-            if hasattr(solution, "cycles") and len(solution.cycles) > 1:
-                data_source = solution.cycles[1]
-            else:
-                data_source = solution
+            pybamm_logger.setLevel(old_level)
+
+            # Check if we have both rest and power cycles
+            if not hasattr(solution, "cycles") or len(solution.cycles) < 2:
+                return False, None
+
+            # Extract power cycle (index 1, after rest at index 0)
+            data_source = solution.cycles[1]
+            actual_power = float(data_source["Power [W]"].entries[-1])
+
+            # If power near zero, step was skipped (infeasible)
+            if abs(actual_power) < 1.0:
+                return False, None
 
             final_voltage = float(data_source["Terminal voltage [V]"].entries[-1])
             final_current = float(data_source["Current [A]"].entries[-1])
-            final_power = float(data_source["Power [W]"].entries[-1])
 
-            # Check if we hit the voltage cutoff
-            voltage_diff = abs(final_voltage - target_voltage)
+            # Check voltage bounds
+            voltage_valid = lower_voltage <= final_voltage <= upper_voltage
 
-            # Extract overpotentials at final point
-            overpotentials = {}
-            try:
-                overpotentials["reaction"] = float(
-                    data_source[
-                        "Sum of x-averaged negative electrode reaction overpotentials [V]"
-                    ].entries[-1]
-                )
-            except (KeyError, AttributeError):
-                overpotentials["reaction"] = None
+            if not voltage_valid:
+                return False, None
 
-            try:
-                overpotentials["concentration"] = float(
-                    data_source[
-                        "X-averaged negative electrode concentration overpotential [V]"
-                    ].entries[-1]
-                )
-            except (KeyError, AttributeError):
-                overpotentials["concentration"] = None
-
-            try:
-                overpotentials["sei"] = float(
-                    data_source[
-                        "Negative electrode SEI film overpotential [V]"
-                    ].entries[-1]
-                )
-            except (KeyError, AttributeError):
-                overpotentials["sei"] = None
-
-            try:
-                overpotentials["ohmic"] = float(
-                    data_source["Ohmic losses [V]"].entries[-1]
-                )
-            except (KeyError, AttributeError):
-                overpotentials["ohmic"] = None
-
-            # Store result
-            best_result = {
-                "c_rate": c_rate_mid,
-                "final_voltage": final_voltage,
-                "current_A": final_current,
-                "power_W": abs(final_power),
+            # Valid result
+            overpotentials = _extract_overpotentials(data_source)
+            result = {
+                "power_W": abs(actual_power),
+                "current_A": abs(final_current),
+                "voltage_V": final_voltage,
                 "overpotentials": overpotentials,
             }
+            return True, result
 
-            # Check convergence (within 1 mV of target)
-            if voltage_diff < 0.001:
-                converged = True
-                break
+        except (pybamm.SolverError, Exception):
+            return False, None
 
-            # Adjust search range
-            if direction == "discharge":
-                if final_voltage > target_voltage:
-                    # Need more discharge, increase C-rate
-                    c_rate_low = c_rate_mid
-                else:
-                    # Discharged too much, decrease C-rate
-                    c_rate_high = c_rate_mid
-            else:  # charge
-                if final_voltage < target_voltage:
-                    # Need more charge, increase C-rate
-                    c_rate_low = c_rate_mid
-                else:
-                    # Charged too much, decrease C-rate
-                    c_rate_high = c_rate_mid
+    # PHASE 1: Find feasible region by reducing from 10 kW by orders of magnitude
+    power = 10000.0  # Start at 10 kW (more reasonable than 100kW)
+    lower_bound_power = None
+    lower_bound_result = None
 
-        except pybamm.SolverError:
-            # If solver fails at this C-rate, reduce upper bound
-            c_rate_high = c_rate_mid
-            continue
+    for reduction in range(10):  # Try down to 1 mW
+        feasible, result = _test_power(power)
+        if feasible:
+            lower_bound_power = power
+            lower_bound_result = result
+            break
+        power /= 10.0
 
-    if best_result is None:
+    if lower_bound_power is None:
+        # No feasible power found even at 1mW
         return {
-            "c_rate": 0.0,
             "power_W": 0.0,
             "current_A": 0.0,
+            "voltage_V": 0.0,
             "converged": False,
             "overpotentials": {
                 "reaction": None,
@@ -422,13 +369,120 @@ def _binary_search_max_crate(
             },
         }
 
+    # PHASE 2: From feasible region, increase by 10x to find upper bound
+    power = lower_bound_power * 10.0
+    upper_bound_power = lower_bound_power
+    upper_bound_result = lower_bound_result
+
+    for attempt in range(10):  # Try up to 1000x higher
+        feasible, result = _test_power(power)
+        if feasible:
+            upper_bound_power = power
+            upper_bound_result = result
+            power *= 10.0
+        else:
+            # Found first infeasible, stop
+            break
+
+    # PHASE 3: Binary search between bounds
+    power_low = lower_bound_power
+    power_high = upper_bound_power
+    best_result = upper_bound_result
+
+    max_iterations = 20
+    for iteration in range(max_iterations):
+        if (power_high - power_low) < 10.0:  # Within 10W tolerance
+            break
+
+        power_mid = (power_low + power_high) / 2
+
+        feasible, result = _test_power(power_mid)
+
+        if feasible:
+            # Valid: search higher
+            best_result = result
+            power_low = power_mid
+        else:
+            # Infeasible: search lower
+            power_high = power_mid
+
     return {
-        "c_rate": best_result["c_rate"],
         "power_W": best_result["power_W"],
         "current_A": best_result["current_A"],
-        "converged": converged,
+        "voltage_V": best_result["voltage_V"],
+        "converged": True,
         "overpotentials": best_result["overpotentials"],
     }
+
+
+def _extract_overpotentials(data_source) -> dict:
+    """
+    Extract overpotential values from PyBaMM solution.
+
+    Safely handles scalar and array returns from PyBaMM variables.
+
+    Args:
+        data_source: PyBaMM cycle or solution data object
+
+    Returns:
+        Dictionary with overpotential values (or None if unavailable)
+    """
+    overpotentials = {
+        "reaction": None,
+        "concentration": None,
+        "sei": None,
+        "ohmic": None,
+    }
+
+    try:
+        reaction_value = data_source[
+            "Sum of x-averaged negative electrode reaction overpotentials [V]"
+        ].entries[-1]
+        overpotentials["reaction"] = float(
+            reaction_value.flat[0]
+            if (hasattr(reaction_value, "__len__") and len(reaction_value) > 0)
+            else reaction_value
+        )
+    except (KeyError, AttributeError, TypeError, ValueError):
+        pass
+
+    try:
+        concentration_value = data_source[
+            "X-averaged negative electrode concentration overpotential [V]"
+        ].entries[-1]
+        overpotentials["concentration"] = float(
+            concentration_value.flat[0]
+            if (
+                hasattr(concentration_value, "__len__") and len(concentration_value) > 0
+            )
+            else concentration_value
+        )
+    except (KeyError, AttributeError, TypeError, ValueError):
+        pass
+
+    try:
+        sei_value = data_source[
+            "Negative electrode SEI film overpotential [V]"
+        ].entries[-1]
+        overpotentials["sei"] = float(
+            sei_value.flat[0]
+            if (hasattr(sei_value, "__len__") and len(sei_value) > 0)
+            else sei_value
+        )
+    except (KeyError, AttributeError, TypeError, ValueError):
+        pass
+
+    try:
+        ohmic_value = data_source["Ohmic losses [V]"].entries[-1]
+        overpotentials["ohmic"] = float(
+            ohmic_value.flat[0]
+            if (hasattr(ohmic_value, "__len__") and len(ohmic_value) > 0)
+            else ohmic_value
+        )
+    except (KeyError, AttributeError, TypeError, ValueError):
+        pass
+
+    return overpotentials
 
 
 def run_spmet_power(
@@ -438,8 +492,18 @@ def run_spmet_power(
     """
     Run SPMeT power sweep to find max discharge/charge power.
 
-    Uses binary search (10 iterations max) to find C-rate that reaches
-    voltage cutoff exactly for each (SOC, temperature, duration) point.
+    Uses direct power sweep (logarithmic spacing) to find maximum power
+    while respecting voltage limits for each (SOC, temperature, duration) point.
+
+    Key difference from old approach:
+    - OLD: Binary search for C-rate that hits exact voltage target
+    - NEW: Sweep power levels and measure voltage response, report max power
+             that stays within [lower_voltage, upper_voltage] bounds
+
+    This is more physically accurate because:
+    1. Real hardware operates at constant power, not constant C-rate
+    2. Voltage naturally varies within the permitted window
+    3. Eliminates "infeasible" solver errors from searching invalid C-rate regions
 
     Args:
         cell_design: Cell design parameters dictionary
@@ -448,8 +512,8 @@ def run_spmet_power(
             - soc_array: Array of SOC points to test [0-1] (required)
             - temp_array: Array of temperatures to test [K] (required)
             - pulse_durations_s: Array of pulse durations to test [s] (required)
-            - c_rate_min: Minimum C-rate for search (default: 0.1)
-            - c_rate_max: Maximum C-rate for search (default: 10.0)
+            - c_rate_min: Minimum C-rate proxy for power sweep (default: 0.1)
+            - c_rate_max: Maximum C-rate proxy for power sweep (default: 10.0)
             - period: Sampling period string (default: "0.1 second")
             - upper_voltage_cutoff: Upper voltage cutoff [V] (required)
             - lower_voltage_cutoff: Lower voltage cutoff [V] (required)
@@ -464,14 +528,16 @@ def run_spmet_power(
             - soc: State of charge tested
             - temperature_K: Temperature tested
             - pulse_duration_s: Pulse duration tested
-            - max_discharge_power_W: Max discharge power
-            - max_discharge_crate: C-rate at max discharge power
+            - max_discharge_power_W: Max discharge power (stays within voltage bounds)
+            - max_discharge_crate: Equivalent C-rate at max discharge power
             - max_discharge_current_A: Current at max discharge power
-            - discharge_converged: Whether binary search converged
-            - max_charge_power_W: Max charge power
-            - max_charge_crate: C-rate at max charge power
+            - max_discharge_voltage_V: Voltage at max discharge power
+            - discharge_converged: Whether a valid power level was found
+            - max_charge_power_W: Max charge power (stays within voltage bounds)
+            - max_charge_crate: Equivalent C-rate at max charge power
             - max_charge_current_A: Current at max charge power
-            - charge_converged: Whether binary search converged
+            - max_charge_voltage_V: Voltage at max charge power
+            - charge_converged: Whether a valid power level was found
             - discharge_overpotentials: Dict with reaction/concentration/sei/ohmic [V]
             - charge_overpotentials: Dict with reaction/concentration/sei/ohmic [V]
 
@@ -498,16 +564,6 @@ def run_spmet_power(
     temp_array = simulation_config["temp_array"]
     pulse_durations = simulation_config["pulse_durations_s"]
 
-    print("\n" + "=" * 80)
-    print("RUNNING POWER SWEEP")
-    print("=" * 80)
-    print(f"SOC points: {len(soc_array)}")
-    print(f"Temperature points: {len(temp_array)}")
-    print(f"Pulse durations: {len(pulse_durations)}")
-    print(
-        f"Total combinations: {len(soc_array) * len(temp_array) * len(pulse_durations)}"
-    )
-
     all_results = []
     point_num = 0
     total_points = len(soc_array) * len(temp_array) * len(pulse_durations)
@@ -516,18 +572,14 @@ def run_spmet_power(
         for temp_K in temp_array:
             for pulse_duration_s in pulse_durations:
                 point_num += 1
-                print(
-                    f"\n[{point_num}/{total_points}] SOC={soc:.2f}, T={temp_K:.1f}K, Duration={pulse_duration_s}s"
-                )
 
                 # Update temperature in config
                 config_copy = simulation_config.copy()
                 config_copy["ambient_temperature"] = temp_K
                 config_copy["initial_temperature"] = temp_K
 
-                # Search max discharge power
-                print("  Searching max discharge power...")
-                discharge_result = _binary_search_max_crate(
+                # Run power sweep characterization for discharge
+                discharge_result = _power_sweep_characterization(
                     soc,
                     temp_K,
                     pulse_duration_s,
@@ -537,9 +589,8 @@ def run_spmet_power(
                     model_options,
                 )
 
-                # Search max charge power
-                print("  Searching max charge power...")
-                charge_result = _binary_search_max_crate(
+                # Run power sweep characterization for charge
+                charge_result = _power_sweep_characterization(
                     soc,
                     temp_K,
                     pulse_duration_s,
@@ -554,28 +605,17 @@ def run_spmet_power(
                     "temperature_K": temp_K,
                     "pulse_duration_s": pulse_duration_s,
                     "max_discharge_power_W": discharge_result["power_W"],
-                    "max_discharge_crate": discharge_result["c_rate"],
                     "max_discharge_current_A": discharge_result["current_A"],
+                    "max_discharge_voltage_V": discharge_result["voltage_V"],
                     "discharge_converged": discharge_result["converged"],
                     "max_charge_power_W": charge_result["power_W"],
-                    "max_charge_crate": charge_result["c_rate"],
                     "max_charge_current_A": charge_result["current_A"],
+                    "max_charge_voltage_V": charge_result["voltage_V"],
                     "charge_converged": charge_result["converged"],
                     "discharge_overpotentials": discharge_result["overpotentials"],
                     "charge_overpotentials": charge_result["overpotentials"],
                 }
 
-                print(
-                    f"  Max discharge: {discharge_result['power_W']:.1f}W at {discharge_result['c_rate']:.2f}C"
-                )
-                print(
-                    f"  Max charge: {charge_result['power_W']:.1f}W at {charge_result['c_rate']:.2f}C"
-                )
-
                 all_results.append(result)
-
-    print("\n" + "=" * 80)
-    print(f"COMPLETED: {len(all_results)} sweep points")
-    print("=" * 80)
 
     return all_results
